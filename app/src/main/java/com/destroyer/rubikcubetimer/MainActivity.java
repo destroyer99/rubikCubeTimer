@@ -3,13 +3,16 @@ package com.destroyer.rubikcubetimer;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
@@ -20,17 +23,16 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.w3c.dom.Text;
 
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity {
 
-    private enum STATE {START, WAIT, HOLD, TIMING, STOP, RESET}
+    private final static float gyroThreshold = 0.018f;
 
-    private float gyroThreshold;
-    private int timerPrecision;
-
-    private SharedPreferences appPrefs;
     private SensorManager mSensorManager;
     DBAdapter db = new DBAdapter(this);
     Vibrator vibrator;
@@ -43,6 +45,18 @@ public class MainActivity extends Activity {
     boolean cubeInProx2 = false;
     boolean cubeOnDev = false;
     boolean gyroSettled = false;
+    private int timerPrecision;
+    String yellow = "@drawable/rubiksetprox";
+    String blue = "@drawable/rubikproxready";
+    String white = "@drawable/rubiktimerready";
+    String green = "@drawable/rubiktimerstart";
+    String red = "@drawable/rubiktimerstop";
+    String dark = "@drawable/rubikmainbackground";
+    int start = R.drawable.startbtn;
+    int placecube = R.drawable.proxsetbtn;
+    int wait = R.drawable.proxwaitingbtn;
+    int ready = R.drawable.proxreadybtn;
+    int finish = R.drawable.finishedbtn;
 
     private final Runnable timer = new Runnable() {
         @Override
@@ -59,7 +73,17 @@ public class MainActivity extends Activity {
         public void onSensorChanged(SensorEvent event) {
             if(event.sensor.getType()==Sensor.TYPE_GYROSCOPE) {
                 if (gyroSettled && (Math.abs(event.values[0]) - gyroLast[0] > gyroThreshold || Math.abs(event.values[1]) - gyroLast[1] > gyroThreshold || Math.abs(event.values[2]) - gyroLast[2] > gyroThreshold)) {
-                    stateResolver(STATE.STOP);
+                    runTimer = false;
+                    mSensorManager.unregisterListener(mSensorListener);
+                    setColors(red, finish);
+                    findViewById(R.id.startResetBtn).setTag(2);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            setColors(dark, start);
+                        }
+                    }, 2000);
+                    findViewById(R.id.startResetBtn).setClickable(true);
                     db.open();
                     Log.wtf("DB_ADDED_SCORE", String.valueOf(db.addTime(System.currentTimeMillis(), millis)));
                     db.close();
@@ -70,14 +94,67 @@ public class MainActivity extends Activity {
                 }
             } else if(event.sensor.getType()==Sensor.TYPE_PROXIMITY) {
                 if (!cubeOnDev && event.values[0] == 0) {
-                    stateResolver(STATE.HOLD);
+                    cubeInProx = true;
+                    setColors(blue, wait);
+                    vibrator.vibrate(250);
+                    timerTxt.setText("Holding cube 3...");
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (cubeInProx) {
+                                vibrator.vibrate(250);
+                                timerTxt.setText("Holding cube 2...");
+                                cubeInProx1 = true;
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (cubeInProx1) {
+                                            vibrator.vibrate(250);
+                                            timerTxt.setText("Holding cube 1...");
+                                            cubeInProx2 = true;
+                                            new Handler().postDelayed(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    if (cubeInProx2) {
+                                                        cubeOnDev = true;
+                                                        runOnUiThread(new Runnable() {
+                                                            @Override
+                                                            public void run() {
+                                                                setColors(white, ready);
+                                                                timerTxt.setText("Lift cube to begin timer!!!");
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                            }, 1000);
+                                        }
+                                    }
+                                }, 1000);
+                            }
+                        }
+                    }, 1000);
                 } else if (cubeOnDev && event.values[0] > 1) {
-                    stateResolver(STATE.TIMING);
+                    cubeInProx = cubeInProx1 = cubeInProx2 = cubeOnDev = false;
+                    mSensorManager.unregisterListener(mSensorListener);
+                    gyroSettled = false;
+                    mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_FASTEST);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            gyroSettled = true;
+                        }
+                    }, 250);
+                    setColors(green, start);
+                    findViewById(R.id.startResetBtn).setClickable(false);
                     runTimer = true;
                     init = System.currentTimeMillis();
+                    timerTxt.setText("");
+                    timerTxt.setTextSize(50);
                     new Handler().post(timer);
                 } else if (event.values[0] > 1) {
-                    stateResolver(STATE.WAIT);
+                    cubeInProx = cubeInProx1 = cubeInProx2  = cubeOnDev = false;
+                    setColors(yellow, placecube);
+                    timerTxt.setText("Waiting for rubik's cube...");
                 }
             } else Log.wtf("Sensor_Type", String.valueOf(event.sensor.getType()));
         }
@@ -93,21 +170,22 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        appPrefs = getSharedPreferences("appPreferences", MODE_PRIVATE);
+        findViewById(R.id.startResetBtn).setTag(1);
 
         timerTxt = (TextView) findViewById(R.id.timerTxt);
-        statsTxt = (TextView) findViewById(R.id.statsTxt);
-        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        timerTxt.setText("Press Start to begin...");
 
-        stateResolver(STATE.START);
+        statsTxt = (TextView) findViewById(R.id.statsTxt);
+
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        timerPrecision = Integer.valueOf(appPrefs.getString("timerPrecision", "21"));
-        gyroThreshold = Float.valueOf(appPrefs.getString("gyroThreshold", "18")) / 1000;
+        timerPrecision = Integer.valueOf(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("timerPrecision", "21"));
         updateStats();
     }
 
@@ -120,10 +198,19 @@ public class MainActivity extends Activity {
     public void onButtonClick(View view) {
         switch (view.getId()) {
             case R.id.startResetBtn:
-                if(((Button)view).getText().equals("Start")) {
-                    stateResolver(STATE.WAIT);
-                } else if(((Button)view).getText().equals("Reset")) {
-                    stateResolver(STATE.RESET);
+                if(view.getTag()==1) {
+                    setColors(yellow, placecube);
+                    timerTxt.setTextSize(22);
+                    timerTxt.setText("Waiting for rubik's cube...");
+                    mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_FASTEST);
+                    updateStats();
+
+                } else if(view.getTag()==2) {
+                    runTimer = cubeInProx = cubeInProx1 = cubeInProx2  = cubeOnDev = gyroSettled = false;
+                    mSensorManager.unregisterListener(mSensorListener);
+                    setColors(dark, start);
+                    timerTxt.setText("Press Start to begin...");
+                    view.setTag(1);
                 }
                 break;
 
@@ -152,119 +239,14 @@ public class MainActivity extends Activity {
         } else statsTxt.setText("");
     }
 
-    private void setColors(int color) {
+    private void setColors(String color, int btn) {
 //        findViewById(R.id.startResetBtn).setBackgroundColor(color);
-        findViewById(R.id.background).setBackgroundColor(color);
-    }
+        int imageResource = getResources().getIdentifier(color, null, getPackageName());
+        Drawable res = getResources().getDrawable(imageResource, null);
+        findViewById(R.id.background).setBackground(res);
 
-    private void stateResolver(STATE state) {
-        switch (state) {
-            case START:
-                timerTxt.setTextSize(22);
-                timerTxt.setText("Press Start to begin...");
-                runTimer = cubeInProx = cubeInProx1 = cubeInProx2  = cubeOnDev = gyroSettled = false;
-                setColors(Color.WHITE);
-                updateStats();
-                ((Button)findViewById(R.id.startResetBtn)).setText("Start");
-                break;
-            case WAIT:
-                timerTxt.setTextSize(22);
-                mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_FASTEST);
-                runTimer = cubeInProx = cubeInProx1 = cubeInProx2  = cubeOnDev = gyroSettled = false;
-                setColors(Color.YELLOW);
-                timerTxt.setText("Waiting for rubik's cube...");
-                ((Button)findViewById(R.id.startResetBtn)).setText("Reset");
-                break;
-            case HOLD:
-                cubeInProx = true;
-                setColors(Color.BLUE);
-                vibrator.vibrate(250);
-                timerTxt.setText("Holding cube 3...");
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (cubeInProx) {
-                            vibrator.vibrate(250);
-                            timerTxt.setText("Holding cube 2...");
-                            cubeInProx1 = true;
-                            new Handler().postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (cubeInProx1) {
-                                        vibrator.vibrate(250);
-                                        timerTxt.setText("Holding cube 1...");
-                                        cubeInProx2 = true;
-                                        new Handler().postDelayed(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                if (cubeInProx2) {
-                                                    cubeOnDev = true;
-                                                    runOnUiThread(new Runnable() {
-                                                        @Override
-                                                        public void run() {
-                                                            setColors(Color.CYAN);
-                                                            timerTxt.setText("Lift cube to begin timer!!!");
-                                                        }
-                                                    });
-                                                }
-                                            }
-                                        }, 1000);
-                                    }
-                                }
-                            }, 1000);
-                        }
-                    }
-                }, 1000);
-                break;
-            case TIMING:
-                timerTxt.setTextSize(50);
-                gyroSettled = cubeInProx = cubeInProx1 = cubeInProx2 = cubeOnDev = false;
-                mSensorManager.unregisterListener(mSensorListener);
-                mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_FASTEST);
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        gyroSettled = true;
-                    }
-                }, 250);
-                setColors(Color.GREEN);
-                ((Button)findViewById(R.id.startResetBtn)).setText("Stop");
-                findViewById(R.id.startResetBtn).setClickable(false);
-                timerTxt.setText("");
-                break;
-            case STOP:
-                mSensorManager.unregisterListener(mSensorListener);
-                runTimer = cubeInProx = cubeInProx1 = cubeInProx2  = cubeOnDev = gyroSettled = false;
-                ((Button)findViewById(R.id.startResetBtn)).setText("Start");
-                setColors(Color.RED);
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (((Button)findViewById(R.id.startResetBtn)).getText().equals("Start")) {
-                            setColors(Color.WHITE);
-                        }
-                    }
-                }, 2000);
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                findViewById(R.id.startResetBtn).setClickable(true);
-                            }
-                        });
-                    }
-                }, 250);
-                break;
-            case RESET:
-                mSensorManager.unregisterListener(mSensorListener);
-                runTimer = cubeInProx = cubeInProx1 = cubeInProx2  = cubeOnDev = gyroSettled = false;
-                ((Button)findViewById(R.id.startResetBtn)).setText("Start");
-                timerTxt.setText("Press Start to begin...");
-                setColors(Color.WHITE);
-                break;
-        }
+        findViewById(R.id.startResetBtn).setBackground(getResources().getDrawable(btn, null));
+
     }
 
     private String formatString(long millis) {

@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/rubikCubeTimer.iml" filepath="$PROJECT_DIR$/rubikCubeTimer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rubiksTimer.iml" filepath="$PROJECT_DIR$/rubiksTimer.iml" />
     </modules>
   </component>
 </project>
