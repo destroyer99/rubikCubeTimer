@@ -4,15 +4,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
-import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.text.TextUtils;
-import android.util.Base64;
 import android.util.Log;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class DBAdapter {
 
@@ -28,7 +22,7 @@ public class DBAdapter {
     static final String TABLE_RUBIK_CREATE = "CREATE TABLE rubik_times (" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
             "dateTime INTEGER, " +
-            "solveTime INTEGER, " +
+            "solveTime INTEGER" +
             ");";
 
     final Context context;
@@ -103,7 +97,11 @@ public class DBAdapter {
     /////////////////  Delete  /////////////////////
 
     public boolean removeAllTimes() {
-        return (db.delete(TABLE_NAME, "*", null) > 0);
+        return (db.delete(TABLE_NAME, null, null) > 0);
+    }
+
+    public DBAdapter removeAllScores() {
+        return ((db.delete(TABLE_NAME, null, null) > 0) ? this : null);
     }
 
     public boolean removeTime(int id) {
