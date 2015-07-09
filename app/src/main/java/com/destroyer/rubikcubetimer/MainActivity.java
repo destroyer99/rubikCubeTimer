@@ -4,24 +4,35 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Point;
+import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.hardware.display.DisplayManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.test.suitebuilder.annotation.Suppress;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,17 +57,19 @@ public class MainActivity extends Activity {
     boolean cubeOnDev = false;
     boolean gyroSettled = false;
     private int timerPrecision;
-    String yellow = "@drawable/rubiksetprox";
-    String blue = "@drawable/rubikproxready";
-    String white = "@drawable/rubiktimerready";
-    String green = "@drawable/rubiktimerstart";
-    String red = "@drawable/rubiktimerstop";
-    String dark = "@drawable/rubikmainbackground";
+    int yellow = R.drawable.rubiksetprox;// "@drawable/rubiksetprox";
+    int blue = R.drawable.rubikproxready;// "@drawable/rubikproxready";
+    int white = R.drawable.rubiktimerready;// "@drawable/rubiktimerready";
+    int green = R.drawable.rubiktimerstart;// "@drawable/rubiktimerstart";
+    int red = R.drawable.rubiktimerstop;// "@drawable/rubiktimerstop";
+    int dark = R.drawable.rubikmainbackground;// "@drawable/rubikmainbackground";
     int start = R.drawable.startbtn;
     int placecube = R.drawable.proxsetbtn;
     int wait = R.drawable.proxwaitingbtn;
     int ready = R.drawable.proxreadybtn;
     int finish = R.drawable.finishedbtn;
+    int dspX, dspY;
+    float height;
 
     private final Runnable timer = new Runnable() {
         @Override
@@ -180,6 +193,20 @@ public class MainActivity extends Activity {
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+
+        Point p = new Point();
+        getWindowManager().getDefaultDisplay().getSize(p);
+        dspX = p.x;
+        setColors(dark, start);
+
+
+
+        final ImageView imgV = (ImageView) findViewById(R.id.dottedLine);
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
+        height = (float)(displayMetrics.ydpi / 1.5);
+        imgV.setY(height);
     }
 
     @Override
@@ -198,14 +225,14 @@ public class MainActivity extends Activity {
     public void onButtonClick(View view) {
         switch (view.getId()) {
             case R.id.startResetBtn:
-                if(view.getTag()==1) {
+                if((int)view.getTag()==1) {
                     setColors(yellow, placecube);
                     timerTxt.setTextSize(22);
                     timerTxt.setText("Waiting for rubik's cube...");
                     mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_FASTEST);
                     updateStats();
 
-                } else if(view.getTag()==2) {
+                } else if((int)view.getTag()==2) {
                     runTimer = cubeInProx = cubeInProx1 = cubeInProx2  = cubeOnDev = gyroSettled = false;
                     mSensorManager.unregisterListener(mSensorListener);
                     setColors(dark, start);
@@ -239,14 +266,13 @@ public class MainActivity extends Activity {
         } else statsTxt.setText("");
     }
 
-    private void setColors(String color, int btn) {
-//        findViewById(R.id.startResetBtn).setBackgroundColor(color);
-        int imageResource = getResources().getIdentifier(color, null, getPackageName());
-        Drawable res = getResources().getDrawable(imageResource, null);
-        findViewById(R.id.background).setBackground(res);
+    private void setColors(int bkg, int btn) {
+        findViewById(R.id.background).setBackgroundResource(bkg);
+        findViewById(R.id.startResetBtn).setBackground(new BitmapDrawable(getResources(), getScaledBitmap(BitmapFactory.decodeResource(getResources(), btn), dspX/2)));
+    }
 
-        findViewById(R.id.startResetBtn).setBackground(getResources().getDrawable(btn, null));
-
+    public static Bitmap getScaledBitmap(Bitmap b, int reqWidth) {
+        return Bitmap.createScaledBitmap(b, reqWidth, (int)((float)b.getHeight() * (float)reqWidth / (float)b.getWidth() ), true);
     }
 
     private String formatString(long millis) {

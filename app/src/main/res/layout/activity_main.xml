@@ -1,4 +1,4 @@
-<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
@@ -30,11 +30,10 @@
         android:textSize="40sp"
         android:layout_row="17"
         android:layout_column="0"
-        android:background="@drawable/startbtn"
-        android:layout_marginLeft="50dp"
-        android:layout_marginRight="50dp"
-        android:layout_marginTop="380dp"
-        android:layout_marginBottom="50dp" />
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="30dp" />
 
     <TextView
         android:layout_width="fill_parent"
@@ -46,4 +45,11 @@
         android:layout_row="1"
         android:layout_column="0" />
 
-</GridLayout>
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/dottedLine"
+        android:src="@drawable/dottedline"
+        android:layout_alignParentTop="true" />
+
+</RelativeLayout>
