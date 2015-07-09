@@ -11,6 +11,14 @@
             android:switchTextOn="Large" />
 
         <EditTextPreference
+            android:title="Gyro Threshold"
+            android:key="gyroThreshold"
+            android:defaultValue="18"
+            android:editable="true"
+            android:inputType="number"
+            android:summary="Gyro Sensitivity Threshold" />
+
+        <EditTextPreference
             android:title="Timer Precision"
             android:key="timerPrecision"
             android:defaultValue="21"
