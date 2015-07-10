@@ -3,11 +3,9 @@ package com.destroyer.rubikcubetimer;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
 import android.os.Vibrator;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -23,11 +21,11 @@ public class UIStateMachine {
     protected enum STATES {START, WAITING, HOLDING, READY, RUNNING, STOPPING}
 
     private Context context;
-    private int displayWidth, displayHeight;
+    private float displayWidth, displayHeight;
 
-    private View layoutView; // views[0] -> Background
+    private View layoutView; // views[0] -> Layout Background
     private Button btn; // views[1] -> Button
-    private ImageView imgView;
+    private ImageView imgView; // views[2] -> ImageView
 
     private State currentState;
     private List<State> stateList;
@@ -35,7 +33,7 @@ public class UIStateMachine {
     private int val;
     private boolean halt;
 
-    public UIStateMachine(Context context, int displayWidth, int displayHeight, View... views) {
+    public UIStateMachine(Context context, float displayWidth, float displayHeight, View... views) {
         this.context = context;
         this.displayWidth = displayWidth;
         this.displayHeight = displayHeight;
@@ -45,15 +43,6 @@ public class UIStateMachine {
         this.halt = false;
 
         this.stateList = new ArrayList<>();
-//        this.stateList.add(new State(STATES.START, STATES.WAITING.ordinal(), R.drawable.startbtn, Color.WHITE)); //R.drawable.rubikmainbackground));
-//        this.stateList.add(new State(STATES.WAITING, STATES.HOLDING.ordinal(), R.drawable.proxwaitbtn, Color.YELLOW)); //R.drawable.rubiksetprox));
-//        this.stateList.add(new State(STATES.HOLDING, STATES.READY.ordinal(), R.drawable.proxholdbtn, Color.BLUE)); //R.drawable.rubikproxready));
-//        this.stateList.add(new State(STATES.READY, STATES.RUNNING.ordinal(), R.drawable.proxreadybtn, Color.CYAN)); //R.drawable.rubiktimerready));
-//        this.stateList.add(new State(STATES.RUNNING, STATES.STOPPING.ordinal(), R.drawable.startbtn/*TODO: change to STOP button*/, Color.GREEN)); //R.drawable.rubiktimerstart));
-//        this.stateList.add(new State(STATES.STOPPING, STATES.START.ordinal(), R.drawable.finishedbtn, Color.RED)); //R.drawable.rubiktimerstop));
-
-        this.currentState = this.stateList.get(0);
-        this.imgView.setVisibility(View.GONE);
     }
 
     public void haltProcess() {
@@ -79,12 +68,9 @@ public class UIStateMachine {
 
     public void setState(STATES state) {
         this.setCurrentState(stateList.get(state.ordinal()));
-//        Log.wtf("SET_STATE", this.currentState.TAG);
     }
 
     private void setCurrentState(State nextState) {
-//        Log.wtf("CURRENT_STATE", this.currentState.TAG);
-//        Log.wtf("NEXT", nextState.TAG);
         this.currentState = nextState;
         switch (currentState.state) {
             case START:
@@ -100,7 +86,7 @@ public class UIStateMachine {
 
             case HOLDING:
                 this.halt = false;
-                this.imgView.setVisibility(View.GONE);
+                final boolean vibrate = context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("vibrate", true);
                 final Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
                 val = 0;
                 Runnable cubeHolder = new Runnable() {
@@ -108,16 +94,16 @@ public class UIStateMachine {
                     public void run() {
                         if (!halt) {
                             if (val++ < 2) {
-                                vibrator.vibrate(250);
+                                if (vibrate) vibrator.vibrate(250);
                                 new Handler().postDelayed(this, 1000);
                             } else {
-                                vibrator.vibrate(500);
+                                if (vibrate) vibrator.vibrate(500);
                                 nextState();
                             }
                         }
                     }
                 };
-                vibrator.vibrate(250);
+                if (vibrate) vibrator.vibrate(250);
                 new Handler().postDelayed(cubeHolder, 1000);
                 break;
 
@@ -125,6 +111,7 @@ public class UIStateMachine {
                 break;
 
             case RUNNING:
+                this.imgView.setVisibility(View.GONE);
                 btn.setClickable(false);
                 break;
 
@@ -148,14 +135,13 @@ public class UIStateMachine {
     }
 
     private void setViews() {
-//        layoutView.setBackgroundResource(currentState.bdrBkg);
-        layoutView.setBackgroundColor(currentState.bdrBkg);
+        layoutView.setBackgroundResource(currentState.bdrBkg);
         btn.setBackground(new BitmapDrawable(context.getResources(), getScaledBitmap(BitmapFactory.decodeResource(context.getResources(), currentState.btnBkg), displayWidth / 2)));
         System.gc();
     }
 
-    private static Bitmap getScaledBitmap(Bitmap b, int reqWidth) {
-        return Bitmap.createScaledBitmap(b, reqWidth, (int)((float)b.getHeight() * (float)reqWidth / (float)b.getWidth() ), true);
+    private static Bitmap getScaledBitmap(Bitmap b, float reqWidth) {
+        return Bitmap.createScaledBitmap(b, (int)reqWidth, (int)((float)b.getHeight() * reqWidth / (float)b.getWidth() ), true);
     }
 
     private class State {

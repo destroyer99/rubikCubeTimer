@@ -30,5 +30,13 @@
             android:title="Clear Database"
             android:key="clearDB"
             android:summary="Delete all scores in database." />
+
+        <SwitchPreference
+            android:title="Vibration"
+            android:key="vibrate"
+            android:defaultValue="true"
+            android:summary="Vibrate on count down"
+            android:summaryOn="On"
+            android:summaryOff="Off" />
     </PreferenceCategory>
 </PreferenceScreen>

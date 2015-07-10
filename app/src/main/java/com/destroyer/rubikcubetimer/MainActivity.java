@@ -4,11 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Point;
-import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -22,9 +19,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.concurrent.TimeUnit;
 
@@ -43,7 +38,6 @@ public class MainActivity extends Activity {
     long init, millis;
     boolean gyroSettled = false;
     private int timerPrecision;
-    float height;
 
     private final Runnable timer = new Runnable() {
         @Override
@@ -61,8 +55,8 @@ public class MainActivity extends Activity {
             if(event.sensor.getType()==Sensor.TYPE_GYROSCOPE) {
                 if (gyroSettled && (Math.abs(event.values[0]) - gyroLast[0] > gyroThreshold || Math.abs(event.values[1]) - gyroLast[1] > gyroThreshold || Math.abs(event.values[2]) - gyroLast[2] > gyroThreshold)) {
                     runTimer = false;
-                    mSensorManager.unregisterListener(mSensorListener);
                     stateMachine.nextState();
+                    mSensorManager.unregisterListener(mSensorListener);
                     db.open();
                     Log.wtf("DB_ADDED_SCORE", String.valueOf(db.addTime(System.currentTimeMillis(), millis)));
                     db.close();
@@ -114,16 +108,16 @@ public class MainActivity extends Activity {
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
-        Point dsp = new Point();
-        getWindowManager().getDefaultDisplay().getSize(dsp);
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
 
-        stateMachine = new UIStateMachine(this, dsp.x, dsp.y, findViewById(R.id.background), findViewById(R.id.startResetBtn), findViewById(R.id.dottedLine));
-        stateMachine.addState(UIStateMachine.STATES.START, UIStateMachine.STATES.WAITING, R.drawable.startbtn, Color.WHITE); //R.drawable.rubikmainbackground));
-        stateMachine.addState(UIStateMachine.STATES.WAITING, UIStateMachine.STATES.HOLDING, R.drawable.proxwaitbtn, Color.YELLOW); //R.drawable.rubiksetprox));
-        stateMachine.addState(UIStateMachine.STATES.HOLDING, UIStateMachine.STATES.READY, R.drawable.proxholdbtn, Color.BLUE); //R.drawable.rubikproxready));
-        stateMachine.addState(UIStateMachine.STATES.READY, UIStateMachine.STATES.RUNNING, R.drawable.proxreadybtn, Color.CYAN); //R.drawable.rubiktimerready));
-        stateMachine.addState(UIStateMachine.STATES.RUNNING, UIStateMachine.STATES.STOPPING, R.drawable.startbtn/*TODO: change to STOP button*/, Color.GREEN); //R.drawable.rubiktimerstart));
-        stateMachine.addState(UIStateMachine.STATES.STOPPING, UIStateMachine.STATES.START, R.drawable.finishedbtn, Color.RED); //R.drawable.rubiktimerstop));
+        stateMachine = new UIStateMachine(this, displayMetrics.widthPixels, displayMetrics.ydpi, findViewById(R.id.background), findViewById(R.id.startResetBtn), findViewById(R.id.dottedLine));
+        stateMachine.addState(UIStateMachine.STATES.START, UIStateMachine.STATES.WAITING, R.drawable.startbtn, R.drawable.rubikmainbackground);
+        stateMachine.addState(UIStateMachine.STATES.WAITING, UIStateMachine.STATES.HOLDING, R.drawable.proxwaitbtn, R.drawable.rubiksetprox);
+        stateMachine.addState(UIStateMachine.STATES.HOLDING, UIStateMachine.STATES.READY, R.drawable.proxholdbtn, R.drawable.rubikproxready);
+        stateMachine.addState(UIStateMachine.STATES.READY, UIStateMachine.STATES.RUNNING, R.drawable.proxreadybtn, R.drawable.rubiktimerready);
+        stateMachine.addState(UIStateMachine.STATES.RUNNING, UIStateMachine.STATES.STOPPING, R.drawable.startbtn/*TODO: change to STOP button*/, R.drawable.rubiktimerstart);
+        stateMachine.addState(UIStateMachine.STATES.STOPPING, UIStateMachine.STATES.START, R.drawable.finishedbtn, R.drawable.rubiktimerstop);
     }
 
     @Override
@@ -131,7 +125,7 @@ public class MainActivity extends Activity {
         super.onResume();
         timerPrecision = Integer.valueOf(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("timerPrecision", "21"));
         updateStats();
-        stateMachine.updateViews();
+        stateMachine.setState(UIStateMachine.STATES.START);
     }
 
     @Override
