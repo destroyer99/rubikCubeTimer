@@ -18,8 +18,8 @@
         android:textStyle="bold"
         android:typeface="normal"
         android:gravity="center_horizontal"
-        android:layout_row="3"
-        android:layout_column="0" />
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
 
     <Button
         android:layout_width="wrap_content"
@@ -28,8 +28,6 @@
         android:onClick="onButtonClick"
         android:textStyle="bold"
         android:textSize="40sp"
-        android:layout_row="17"
-        android:layout_column="0"
         android:layout_alignParentEnd="false"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
@@ -41,14 +39,13 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:id="@+id/statsTxt"
         android:textAlignment="center"
-        android:gravity="center_horizontal"
-        android:layout_row="1"
-        android:layout_column="0" />
+        android:gravity="center_horizontal" />
 
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/dottedLine"
+        android:contentDescription=""
         android:src="@drawable/dottedline"
         android:layout_alignParentTop="true" />
 
