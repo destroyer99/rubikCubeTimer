@@ -22,8 +22,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" readonly="true" id="a584a0bc-44c5-4962-b637-3a314f7c3087" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/java/com/destroyer/rubikcubetimer/MainActivity.java" afterPath="$PROJECT_DIR$/app/src/main/java/com/destroyer/rubikcubetimer/MainActivity.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/java/com/destroyer/rubikcubetimer/UIStateMachine.java" afterPath="$PROJECT_DIR$/app/src/main/java/com/destroyer/rubikcubetimer/UIStateMachine.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="rubikCubeTimer.iws" />
@@ -1970,7 +1968,13 @@
       <option name="project" value="LOCAL" />
       <updated>1436501312271</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="moved state creation to Main with call to stateMachine for add&#10;made dottedLine dynamically created/removed">
+      <created>1436531625465</created>
+      <option name="number" value="00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1436531625465</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -2020,7 +2024,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="fixed image scaling&#10;added moving dottedLine" />
     <MESSAGE value="added state machine&#10;broke background image" />
-    <option name="LAST_COMMIT_MESSAGE" value="added state machine&#10;broke background image" />
+    <MESSAGE value="moved state creation to Main with call to stateMachine for add&#10;made dottedLine dynamically created/removed" />
+    <option name="LAST_COMMIT_MESSAGE" value="moved state creation to Main with call to stateMachine for add&#10;made dottedLine dynamically created/removed" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
