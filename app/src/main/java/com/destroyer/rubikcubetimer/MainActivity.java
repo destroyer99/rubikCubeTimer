@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Sensor;
@@ -107,27 +108,22 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-
-        findViewById(R.id.startResetBtn).setTag(1);
-
         timerTxt = (TextView) findViewById(R.id.timerTxt);
-
         statsTxt = (TextView) findViewById(R.id.statsTxt);
 
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
-        Point p = new Point();
-        getWindowManager().getDefaultDisplay().getSize(p);
+        Point dsp = new Point();
+        getWindowManager().getDefaultDisplay().getSize(dsp);
 
-        stateMachine = new UIStateMachine(this, p.x, findViewById(R.id.background), findViewById(R.id.startResetBtn));
-
-        final ImageView imgV = (ImageView) findViewById(R.id.dottedLine);
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
-        height = (float)(displayMetrics.ydpi / 1.5);
-        imgV.setY(height);
+        stateMachine = new UIStateMachine(this, dsp.x, dsp.y, findViewById(R.id.background), findViewById(R.id.startResetBtn), findViewById(R.id.dottedLine));
+        stateMachine.addState(UIStateMachine.STATES.START, UIStateMachine.STATES.WAITING, R.drawable.startbtn, Color.WHITE); //R.drawable.rubikmainbackground));
+        stateMachine.addState(UIStateMachine.STATES.WAITING, UIStateMachine.STATES.HOLDING, R.drawable.proxwaitbtn, Color.YELLOW); //R.drawable.rubiksetprox));
+        stateMachine.addState(UIStateMachine.STATES.HOLDING, UIStateMachine.STATES.READY, R.drawable.proxholdbtn, Color.BLUE); //R.drawable.rubikproxready));
+        stateMachine.addState(UIStateMachine.STATES.READY, UIStateMachine.STATES.RUNNING, R.drawable.proxreadybtn, Color.CYAN); //R.drawable.rubiktimerready));
+        stateMachine.addState(UIStateMachine.STATES.RUNNING, UIStateMachine.STATES.STOPPING, R.drawable.startbtn/*TODO: change to STOP button*/, Color.GREEN); //R.drawable.rubiktimerstart));
+        stateMachine.addState(UIStateMachine.STATES.STOPPING, UIStateMachine.STATES.START, R.drawable.finishedbtn, Color.RED); //R.drawable.rubiktimerstop));
     }
 
     @Override

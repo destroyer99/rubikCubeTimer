@@ -7,9 +7,11 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,10 +23,11 @@ public class UIStateMachine {
     protected enum STATES {START, WAITING, HOLDING, READY, RUNNING, STOPPING}
 
     private Context context;
-    private int displayWidth;
+    private int displayWidth, displayHeight;
 
     private View layoutView; // views[0] -> Background
     private Button btn; // views[1] -> Button
+    private ImageView imgView;
 
     private State currentState;
     private List<State> stateList;
@@ -32,22 +35,25 @@ public class UIStateMachine {
     private int val;
     private boolean halt;
 
-    public UIStateMachine(Context context, int displayWidth, View... views) {
+    public UIStateMachine(Context context, int displayWidth, int displayHeight, View... views) {
         this.context = context;
         this.displayWidth = displayWidth;
+        this.displayHeight = displayHeight;
         this.layoutView = views[0];
         this.btn = (Button)views[1];
+        this.imgView = (ImageView)views[2];
         this.halt = false;
 
         this.stateList = new ArrayList<>();
-        this.stateList.add(new State(STATES.START, STATES.WAITING.ordinal(), R.drawable.startbtn, Color.WHITE)); //R.drawable.rubikmainbackground));
-        this.stateList.add(new State(STATES.WAITING, STATES.HOLDING.ordinal(), R.drawable.proxwaitbtn, Color.YELLOW)); //R.drawable.rubiksetprox));
-        this.stateList.add(new State(STATES.HOLDING, STATES.READY.ordinal(), R.drawable.proxholdbtn, Color.BLUE)); //R.drawable.rubikproxready));
-        this.stateList.add(new State(STATES.READY, STATES.RUNNING.ordinal(), R.drawable.proxreadybtn, Color.CYAN)); //R.drawable.rubiktimerready));
-        this.stateList.add(new State(STATES.RUNNING, STATES.STOPPING.ordinal(), R.drawable.startbtn/*TODO: change to STOP button*/, Color.GREEN)); //R.drawable.rubiktimerstart));
-        this.stateList.add(new State(STATES.STOPPING, STATES.START.ordinal(), R.drawable.finishedbtn, Color.RED)); //R.drawable.rubiktimerstop));
+//        this.stateList.add(new State(STATES.START, STATES.WAITING.ordinal(), R.drawable.startbtn, Color.WHITE)); //R.drawable.rubikmainbackground));
+//        this.stateList.add(new State(STATES.WAITING, STATES.HOLDING.ordinal(), R.drawable.proxwaitbtn, Color.YELLOW)); //R.drawable.rubiksetprox));
+//        this.stateList.add(new State(STATES.HOLDING, STATES.READY.ordinal(), R.drawable.proxholdbtn, Color.BLUE)); //R.drawable.rubikproxready));
+//        this.stateList.add(new State(STATES.READY, STATES.RUNNING.ordinal(), R.drawable.proxreadybtn, Color.CYAN)); //R.drawable.rubiktimerready));
+//        this.stateList.add(new State(STATES.RUNNING, STATES.STOPPING.ordinal(), R.drawable.startbtn/*TODO: change to STOP button*/, Color.GREEN)); //R.drawable.rubiktimerstart));
+//        this.stateList.add(new State(STATES.STOPPING, STATES.START.ordinal(), R.drawable.finishedbtn, Color.RED)); //R.drawable.rubiktimerstop));
 
         this.currentState = this.stateList.get(0);
+        this.imgView.setVisibility(View.GONE);
     }
 
     public void haltProcess() {
@@ -55,7 +61,8 @@ public class UIStateMachine {
         Log.wtf("HALTING_STATEMACHINE", this.currentState.TAG);
     }
 
-    public void createNewState() {
+    public void addState(STATES state, STATES nextState, int btnBkg, int bdrBkg) {
+        this.stateList.add(new State(state, nextState.ordinal(), btnBkg, bdrBkg));
     }
 
     public void resetState() {
@@ -81,14 +88,19 @@ public class UIStateMachine {
         this.currentState = nextState;
         switch (currentState.state) {
             case START:
+                this.imgView.setVisibility(View.GONE);
                 btn.setClickable(true);
                 break;
 
             case WAITING:
+                float height = (float)(displayHeight / 1.5);
+                imgView.setY(height);
+                this.imgView.setVisibility(View.VISIBLE);
                 break;
 
             case HOLDING:
                 this.halt = false;
+                this.imgView.setVisibility(View.GONE);
                 final Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
                 val = 0;
                 Runnable cubeHolder = new Runnable() {
