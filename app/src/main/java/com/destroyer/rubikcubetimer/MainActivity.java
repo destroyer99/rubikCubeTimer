@@ -4,15 +4,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Color;
-import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Vibrator;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
@@ -23,21 +20,35 @@ import android.widget.TextView;
 
 import java.util.concurrent.TimeUnit;
 
+/*TODO:
+    timer font style/color
+    stats
+        -> font style/color
+        -> viewer/editor (database)
+        -> show last: 1, 5, 10/12, 50, 100, month
+    countdown timer
+        -> toggle-able
+        -> after start, goes to CDT and must set cube
+           on proximity within X seconds or go back to start
+    recolor STOP button to green or change RUNNING glow color
+    pass TextViews to state machine to toggle/edit viewable text
+    fix lag from RUNNING -> STOPPED, time jumping from lag
+    add text on dotted_line.png "Place Cube Here"
+ */
+
 public class MainActivity extends Activity {
 
-    private final static float gyroThreshold = 0.018f;
+    private float gyroThreshold;
+    private int timerPrecision;
 
     private UIStateMachine stateMachine;
-
     private SensorManager mSensorManager;
-    DBAdapter db = new DBAdapter(this);
-    Vibrator vibrator;
+
     private float[] gyroLast = {0, 0, 0};
     boolean runTimer = false;
+    boolean gyroSettled = false;
     TextView timerTxt, statsTxt;
     long init, millis;
-    boolean gyroSettled = false;
-    private int timerPrecision;
 
     private final Runnable timer = new Runnable() {
         @Override
@@ -45,7 +56,7 @@ public class MainActivity extends Activity {
             if(runTimer) {
                 millis = System.currentTimeMillis()-init;
                 timerTxt.setText(formatString(millis));
-                new Handler().postDelayed(this, timerPrecision);
+                if (runTimer) new Handler().postDelayed(this, timerPrecision);
             }
         }
     };
@@ -55,11 +66,9 @@ public class MainActivity extends Activity {
             if(event.sensor.getType()==Sensor.TYPE_GYROSCOPE) {
                 if (gyroSettled && (Math.abs(event.values[0]) - gyroLast[0] > gyroThreshold || Math.abs(event.values[1]) - gyroLast[1] > gyroThreshold || Math.abs(event.values[2]) - gyroLast[2] > gyroThreshold)) {
                     runTimer = false;
+                    stateMachine.setVal(millis);
                     stateMachine.nextState();
                     mSensorManager.unregisterListener(mSensorListener);
-                    db.open();
-                    Log.wtf("DB_ADDED_SCORE", String.valueOf(db.addTime(System.currentTimeMillis(), millis)));
-                    db.close();
                 } else {
                     gyroLast[0] = Math.abs(event.values[0]);
                     gyroLast[1] = Math.abs(event.values[1]);
@@ -79,9 +88,9 @@ public class MainActivity extends Activity {
                         }
                     }, 250);
                     stateMachine.nextState();
+                    timerTxt.setText("");
                     runTimer = true;
                     init = System.currentTimeMillis();
-                    timerTxt.setText("");
                     timerTxt.setTextSize(50);
                     new Handler().post(timer);
                 } else if (stateMachine.getState() != UIStateMachine.STATES.WAITING && event.values[0] > 1) {
@@ -105,25 +114,26 @@ public class MainActivity extends Activity {
         timerTxt = (TextView) findViewById(R.id.timerTxt);
         statsTxt = (TextView) findViewById(R.id.statsTxt);
 
-        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
 
-        stateMachine = new UIStateMachine(this, displayMetrics.widthPixels, displayMetrics.ydpi, findViewById(R.id.background), findViewById(R.id.startResetBtn), findViewById(R.id.dottedLine));
-        stateMachine.addState(UIStateMachine.STATES.START, UIStateMachine.STATES.WAITING, R.drawable.startbtn, R.drawable.rubikmainbackground);
-        stateMachine.addState(UIStateMachine.STATES.WAITING, UIStateMachine.STATES.HOLDING, R.drawable.proxwaitbtn, R.drawable.rubiksetprox);
-        stateMachine.addState(UIStateMachine.STATES.HOLDING, UIStateMachine.STATES.READY, R.drawable.proxholdbtn, R.drawable.rubikproxready);
-        stateMachine.addState(UIStateMachine.STATES.READY, UIStateMachine.STATES.RUNNING, R.drawable.proxreadybtn, R.drawable.rubiktimerready);
-        stateMachine.addState(UIStateMachine.STATES.RUNNING, UIStateMachine.STATES.STOPPING, R.drawable.startbtn/*TODO: change to STOP button*/, R.drawable.rubiktimerstart);
-        stateMachine.addState(UIStateMachine.STATES.STOPPING, UIStateMachine.STATES.START, R.drawable.finishedbtn, R.drawable.rubiktimerstop);
+        stateMachine = new UIStateMachine(this, displayMetrics.widthPixels, displayMetrics.ydpi, findViewById(R.id.bkgGlow), findViewById(R.id.startResetBtn),
+                findViewById(R.id.dottedLine), findViewById(R.id.cube), statsTxt, timerTxt, findViewById(R.id.bkgMain));
+        stateMachine.addState(UIStateMachine.STATES.START, UIStateMachine.STATES.WAITING, R.drawable.glow_start_rainbow, R.drawable.btn_start);
+        stateMachine.addState(UIStateMachine.STATES.WAITING, UIStateMachine.STATES.HOLDING, R.drawable.btn_waiting_old, R.drawable.btn_waiting_old);
+        stateMachine.addState(UIStateMachine.STATES.HOLDING, UIStateMachine.STATES.READY, R.drawable.glow_holding, R.drawable.btn_holding);
+        stateMachine.addState(UIStateMachine.STATES.READY, UIStateMachine.STATES.RUNNING, R.drawable.glow_ready, R.drawable.btn_ready);
+        stateMachine.addState(UIStateMachine.STATES.RUNNING, UIStateMachine.STATES.STOPPING, R.drawable.glow_running, R.drawable.btn_stop);
+        stateMachine.addState(UIStateMachine.STATES.STOPPING, UIStateMachine.STATES.START, R.drawable.glow_finished, R.drawable.btn_finished);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         timerPrecision = Integer.valueOf(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("timerPrecision", "21"));
+        gyroThreshold = Float.valueOf(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("gyroThreshold", "18")) / 1000;
         updateStats();
         stateMachine.setState(UIStateMachine.STATES.START);
     }
@@ -137,14 +147,14 @@ public class MainActivity extends Activity {
     public void onButtonClick(View view) {
         switch (stateMachine.getState()) {
             case START:
-                    //stateMachine.nextState();
-                    mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_FASTEST);
-                    updateStats();
+                mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_FASTEST);
+                updateStats();
                 break;
 
             case WAITING: case HOLDING: case READY:
                 runTimer = gyroSettled = false;
                 mSensorManager.unregisterListener(mSensorListener);
+                stateMachine.haltProcess();
                 stateMachine.resetState();
 
             default:
@@ -154,6 +164,7 @@ public class MainActivity extends Activity {
 
     private void updateStats() {
         int avg = 0, low = Integer.MAX_VALUE, high = Integer.MIN_VALUE, val;
+        DBAdapter db = new DBAdapter(this);
         db.open();
         Cursor cursor;
         if ((cursor = db.getAllTimes()) != null && cursor.moveToFirst()) {
@@ -166,17 +177,22 @@ public class MainActivity extends Activity {
 
             avg = avg / cursor.getCount();
 
-            statsTxt.setText("Average Score: " + formatString(avg) +
-                                "\nFastest Score: " + formatString(low) +
-                                "\nLast Score: " + (cursor.moveToFirst() ? formatString(cursor.getInt(1)) : formatString(0)));
+            statsTxt.setText("Average Score:  " + formatString(avg) +
+                    "\nFastest Score:  " + formatString(low) +
+                    "\nLast Score:  " + (cursor.moveToFirst() ? formatString(cursor.getInt(1)) : formatString(0)));
         } else statsTxt.setText("");
     }
 
     private String formatString(long millis) {
-        return String.format("%d:%02d:%03d",
-                TimeUnit.MILLISECONDS.toMinutes(millis),
-                TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)),
-                TimeUnit.MILLISECONDS.toMillis(millis) - TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(millis)));
+        return (TimeUnit.MILLISECONDS.toMinutes(millis) > 0 ?
+                String.format("%d:%02d:%03d",
+                        TimeUnit.MILLISECONDS.toMinutes(millis),
+                        TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)),
+                        TimeUnit.MILLISECONDS.toMillis(millis) - TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(millis)))
+                :
+                String.format("%02d:%03d",
+                        TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)),
+                        TimeUnit.MILLISECONDS.toMillis(millis) - TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(millis))));
     }
 
     @Override
