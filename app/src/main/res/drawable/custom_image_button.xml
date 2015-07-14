@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res/com.destroyer.rubikcubetimer">
+    <item
+        app:state_start="true"
+        app:state_cdt="false"
+        app:state_waiting="false"
+        app:state_holding="false"
+        app:state_ready="false"
+        app:state_running="false"
+        app:state_stopping="false"
+        app:state_finished="false"
+        android:drawable="@drawable/btn_start" />
+    <item
+        app:state_start="false"
+        app:state_cdt="true"
+        app:state_waiting="false"
+        app:state_holding="false"
+        app:state_ready="false"
+        app:state_running="false"
+        app:state_stopping="false"
+        app:state_finished="false"
+        android:drawable="@drawable/btn_start" />
+    <item
+        app:state_start="false"
+        app:state_cdt="false"
+        app:state_waiting="true"
+        app:state_holding="false"
+        app:state_ready="false"
+        app:state_running="false"
+        app:state_stopping="false"
+        app:state_finished="false"
+        android:drawable="@drawable/btn_waiting" />
+    <item
+        app:state_start="false"
+        app:state_cdt="false"
+        app:state_waiting="false"
+        app:state_holding="true"
+        app:state_ready="false"
+        app:state_running="false"
+        app:state_stopping="false"
+        app:state_finished="false"
+        android:drawable="@drawable/btn_holding" />
+    <item
+        app:state_start="false"
+        app:state_cdt="false"
+        app:state_waiting="false"
+        app:state_holding="false"
+        app:state_ready="true"
+        app:state_running="false"
+        app:state_stopping="false"
+        app:state_finished="false"
+        android:drawable="@drawable/btn_ready" />
+    <item
+        app:state_start="false"
+        app:state_cdt="false"
+        app:state_waiting="false"
+        app:state_holding="false"
+        app:state_ready="false"
+        app:state_running="true"
+        app:state_stopping="false"
+        app:state_finished="false"
+        android:drawable="@drawable/btn_running" />
+    <item
+        app:state_start="false"
+        app:state_cdt="false"
+        app:state_waiting="false"
+        app:state_holding="false"
+        app:state_ready="false"
+        app:state_running="false"
+        app:state_stopping="true"
+        app:state_finished="false"
+        android:drawable="@drawable/btn_finished" />
+    <item
+        app:state_start="false"
+        app:state_cdt="false"
+        app:state_waiting="false"
+        app:state_holding="false"
+        app:state_ready="false"
+        app:state_running="false"
+        app:state_stopping="false"
+        app:state_finished="true"
+        android:drawable="@drawable/btn_finished" />
+</selector>

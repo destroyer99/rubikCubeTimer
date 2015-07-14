@@ -110,6 +110,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (getActionBar() != null) getActionBar().hide();
 
         timerTxt = (TextView) findViewById(R.id.timerTxt);
         statsTxt = (TextView) findViewById(R.id.statsTxt);
@@ -125,7 +126,7 @@ public class MainActivity extends Activity {
         stateMachine.addState(UIStateMachine.STATES.WAITING, UIStateMachine.STATES.HOLDING, R.drawable.btn_waiting_old, R.drawable.btn_waiting_old);
         stateMachine.addState(UIStateMachine.STATES.HOLDING, UIStateMachine.STATES.READY, R.drawable.glow_holding, R.drawable.btn_holding);
         stateMachine.addState(UIStateMachine.STATES.READY, UIStateMachine.STATES.RUNNING, R.drawable.glow_ready, R.drawable.btn_ready);
-        stateMachine.addState(UIStateMachine.STATES.RUNNING, UIStateMachine.STATES.STOPPING, R.drawable.glow_running, R.drawable.btn_stop);
+        stateMachine.addState(UIStateMachine.STATES.RUNNING, UIStateMachine.STATES.STOPPING, R.drawable.glow_running, R.drawable.btn_running);
         stateMachine.addState(UIStateMachine.STATES.STOPPING, UIStateMachine.STATES.START, R.drawable.glow_finished, R.drawable.btn_finished);
     }
 

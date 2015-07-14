@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ui_states">
+        <attr name="state_start" format="boolean" />
+        <attr name="state_cdt" format="boolean" />
+        <attr name="state_waiting" format="boolean" />
+        <attr name="state_holding" format="boolean" />
+        <attr name="state_ready" format="boolean" />
+        <attr name="state_running" format="boolean" />
+        <attr name="state_stopping" format="boolean" />
+        <attr name="state_finished" format="boolean" />
+    </declare-styleable>
+</resources>

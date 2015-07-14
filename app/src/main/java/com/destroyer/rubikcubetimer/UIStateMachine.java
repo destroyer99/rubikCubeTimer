@@ -33,8 +33,8 @@ public class UIStateMachine {
     private Context context;
     private float displayWidth, displayHeight;
 
-    private ImageView bkgGlow;
-    private ImageButton btn;
+    private CustomImageView bkgGlow;
+    private CustomImageButton btn;
     private ImageView dotLine;
     private ImageView cube;
     private TextView stats;
@@ -43,36 +43,15 @@ public class UIStateMachine {
     private State currentState;
     private List<State> stateList;
 
-    private Bitmap bkgGlowBitmap;
-    private Bitmap btnBitmap;
-
     private long val;
     private boolean halt;
-
-    private Thread setViews = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            if (bkgGlowBitmap == null) {
-                bkgGlowBitmap = getScaledBitmap(BitmapFactory.decodeResource(context.getResources(), currentState.bkgGlow), displayWidth);
-            }
-            if (btnBitmap == null) {
-                btnBitmap = getScaledBitmap(BitmapFactory.decodeResource(context.getResources(), currentState.btnBkg), displayWidth / 2);
-            }
-
-            bkgGlow.setImageBitmap(bkgGlowBitmap);
-            btn.setImageBitmap(btnBitmap);
-
-            bkgGlowBitmap = getScaledBitmap(BitmapFactory.decodeResource(context.getResources(), stateList.get(currentState.nextState).bkgGlow), displayWidth);
-            btnBitmap = getScaledBitmap(BitmapFactory.decodeResource(context.getResources(), stateList.get(currentState.nextState).btnBkg), displayWidth / 2);
-        }
-    });
 
     public UIStateMachine(Context context, float displayWidth, float displayHeight, View... views) {
         this.context = context;
         this.displayWidth = displayWidth;
         this.displayHeight = displayHeight;
-        this.bkgGlow = (ImageView)views[0];
-        this.btn = (ImageButton)views[1];
+        this.bkgGlow = (CustomImageView)views[0];
+        this.btn = (CustomImageButton)views[1];
         this.dotLine = (ImageView)views[2];
         this.cube = (ImageView)views[3];
         this.stats = (TextView)views[4];
@@ -103,7 +82,6 @@ public class UIStateMachine {
         reset currentState to START (or whatever the first defined state is)
      */
     public void resetState() {
-        this.bkgGlowBitmap = this.btnBitmap = null;
         this.setCurrentState(this.stateList.get(STATES.START.ordinal()));
     }
 
@@ -130,7 +108,6 @@ public class UIStateMachine {
         public call to explicitly set the currentState
      */
     public void setState(STATES state) {
-        this.bkgGlowBitmap = this.btnBitmap = null;
         this.setCurrentState(stateList.get(state.ordinal()));
     }
 
@@ -138,7 +115,8 @@ public class UIStateMachine {
         public call to explicitly update views to currentState
      */
     public void updateViews() {
-        setViews.run();
+        btn.refreshDrawableState();
+        bkgGlow.refreshDrawableState();
     }
 
     public void setVal(long val) {
@@ -158,6 +136,11 @@ public class UIStateMachine {
                 this.cube.setVisibility(View.VISIBLE);
                 this.stats.setVisibility(View.VISIBLE);
                 btn.setClickable(true);
+
+                btn.setStateStart();
+                btn.refreshDrawableState();
+                bkgGlow.setStateStart();
+                bkgGlow.refreshDrawableState();
                 break;
 
             case WAITING:
@@ -165,6 +148,11 @@ public class UIStateMachine {
                 dotLine.setY(height);
                 this.stats.setVisibility(View.GONE);
                 this.dotLine.setVisibility(View.VISIBLE);
+
+                btn.setStateWaiting();
+                btn.refreshDrawableState();
+                bkgGlow.setStateWaiting();
+                bkgGlow.refreshDrawableState();
                 break;
 
             case HOLDING:
@@ -190,25 +178,39 @@ public class UIStateMachine {
                         }
                     }
                 };
-                setViews.run();
+                btn.setStateHolding();
+                btn.refreshDrawableState();
+                bkgGlow.setStateHolding();
+                bkgGlow.refreshDrawableState();
                 if (vibrate) vibrator.vibrate(250);
                 new Handler().postDelayed(cubeHolder, 1000);
-                return;
+                break;
 
             case READY:
-                setViews.run();
-                ((Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(500);
-                return;
+                btn.setStateReady();
+                btn.refreshDrawableState();
+                bkgGlow.setStateReady();
+                bkgGlow.refreshDrawableState();
+                if (context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("vibrate", true)) ((Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(500);
+                break;
 
             case RUNNING:
                 this.dotLine.setVisibility(View.GONE);
                 this.cube.setVisibility(View.GONE);
                 this.timer.setVisibility(View.VISIBLE);
                 btn.setClickable(false);
+
+                btn.setStateRunning();
+                btn.refreshDrawableState();
+                bkgGlow.setStateRunning();
+                bkgGlow.refreshDrawableState();
                 break;
 
             case STOPPING:
-                setViews.run();
+                btn.setStateStopping();
+                btn.refreshDrawableState();
+                bkgGlow.setStateStopping();
+                bkgGlow.refreshDrawableState();
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -234,12 +236,11 @@ public class UIStateMachine {
                                 }).show();
                     }
                 }, STOPPING_TIMEOUT);
-                return;
+                break;
 
             default:
                 break;
         }
-        setViews.run();
     }
 
     private static Bitmap getScaledBitmap(Bitmap b, float reqWidth) {
