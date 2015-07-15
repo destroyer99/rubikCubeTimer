@@ -138,8 +138,8 @@ public class UIStateMachine {
                 btn.setClickable(true);
 
                 btn.setStateStart();
-                btn.refreshDrawableState();
                 bkgGlow.setStateStart();
+                btn.refreshDrawableState();
                 bkgGlow.refreshDrawableState();
                 break;
 
@@ -150,8 +150,8 @@ public class UIStateMachine {
                 this.dotLine.setVisibility(View.VISIBLE);
 
                 btn.setStateWaiting();
-                btn.refreshDrawableState();
                 bkgGlow.setStateWaiting();
+                btn.refreshDrawableState();
                 bkgGlow.refreshDrawableState();
                 break;
 
@@ -165,11 +165,6 @@ public class UIStateMachine {
                     public void run() {
                         if (!halt) {
                             if (val++ < 2) {
-                                if (val == 2) {
-                                    if (vibrate) vibrator.vibrate(250);
-                                    new Handler().postDelayed(this, 500);
-                                    return;
-                                }
                                 if (vibrate) vibrator.vibrate(250);
                                 new Handler().postDelayed(this, 1000);
                             } else {

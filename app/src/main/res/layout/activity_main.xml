@@ -24,8 +24,9 @@
         android:id="@+id/bkgGlow"
         android:contentDescription="@string/imgViewContectDescription"
         android:background="@android:color/transparent"
+        android:src="@drawable/custom_image_view"
         android:scaleType="fitXY"
-        android:src="@drawable/custom_image_view" />
+        android:visibility="visible" />
 
     <ImageView
         android:layout_width="match_parent"
