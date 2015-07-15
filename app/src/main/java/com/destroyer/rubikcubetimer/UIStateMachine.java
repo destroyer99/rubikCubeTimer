@@ -3,8 +3,11 @@ package com.destroyer.rubikcubetimer;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.util.Log;
@@ -18,10 +21,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /*TODO:
-    pass in TextViews to toggle/edit viewable text
     fix state linking/pointing errors (either here or in MainActivity)  (fixed?????)
-    ssslllooowww performance, especially from HOLDING->READY
-        -> maybe put calls from MainActivity on a seperate thread?
  */
 
 public class UIStateMachine {
@@ -31,7 +31,7 @@ public class UIStateMachine {
     protected enum STATES {START, WAITING, HOLDING, READY, RUNNING, STOPPING}
 
     private Context context;
-    private float displayWidth, displayHeight;
+    private float displayHeight;
 
     private CustomImageView bkgGlow;
     private CustomImageButton btn;
@@ -46,9 +46,10 @@ public class UIStateMachine {
     private long val;
     private boolean halt;
 
+    private CountDownTimer cdt;
+
     public UIStateMachine(Context context, float displayWidth, float displayHeight, View... views) {
         this.context = context;
-        this.displayWidth = displayWidth;
         this.displayHeight = displayHeight;
         this.bkgGlow = (CustomImageView)views[0];
         this.btn = (CustomImageButton)views[1];
@@ -57,6 +58,19 @@ public class UIStateMachine {
         this.stats = (TextView)views[4];
         this.timer = (TextView)views[5];
         this.halt = false;
+
+        cdt = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "10")) + 1) * 1000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                stats.setText(String.format("\n%d...", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)));
+            }
+
+            @Override
+            public void onFinish() {
+                stats.setTextSize(30);
+                stats.setText("PLACE CUBE\nNOW!!!");
+            }
+        };
 
         ((ImageView)views[6]).setImageBitmap(getScaledBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.bkg_main), displayWidth));
         cube.setImageBitmap(getScaledBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.cube), displayWidth / 2));
@@ -69,6 +83,7 @@ public class UIStateMachine {
      */
     public void haltProcess() {
         this.halt = true;
+        this.cdt.cancel();
     }
 
     /*
@@ -96,12 +111,7 @@ public class UIStateMachine {
         public call to execute stateMachine to next state
      */
     public void nextState() {
-        new Handler().post(new Runnable() {
-            @Override
-            public void run() {
-                setCurrentState(stateList.get(currentState.nextState));
-            }
-        });
+        setCurrentState(stateList.get(currentState.nextState));
     }
 
     /*
@@ -123,6 +133,21 @@ public class UIStateMachine {
         this.val = val;
     }
 
+    public void updateTimer() {
+        cdt = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "10")) + 1) * 1000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                stats.setText(String.format("\n%d...", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)));
+            }
+
+            @Override
+            public void onFinish() {
+                stats.setTextSize(30);
+                stats.setText("PLACE CUBE\nNOW!!!");
+            }
+        };
+    }
+
     /*
         stateMachine Core
         defines actions for each state
@@ -131,6 +156,10 @@ public class UIStateMachine {
         this.currentState = state;
         switch (currentState.state) {
             case START:
+                stats.setTextSize(24);
+                stats.setTypeface(null, Typeface.NORMAL);
+                updateStats();
+
                 this.timer.setVisibility(View.GONE);
                 this.dotLine.setVisibility(View.GONE);
                 this.cube.setVisibility(View.VISIBLE);
@@ -144,9 +173,18 @@ public class UIStateMachine {
                 break;
 
             case WAITING:
+                if (context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("cdt", true)) {
+                    stats.setText("");
+                    stats.setTextSize(50);
+                    stats.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HEMIHEAD.TTF"));
+                    this.stats.setVisibility(View.VISIBLE);
+                    cdt.start();
+                } else {
+                    this.stats.setVisibility(View.GONE);
+                }
+
                 float height = (float)(displayHeight / 1.2);
                 dotLine.setY(height);
-                this.stats.setVisibility(View.GONE);
                 this.dotLine.setVisibility(View.VISIBLE);
 
                 btn.setStateWaiting();
@@ -173,6 +211,7 @@ public class UIStateMachine {
                         }
                     }
                 };
+                this.stats.setVisibility(View.GONE);
                 btn.setStateHolding();
                 btn.refreshDrawableState();
                 bkgGlow.setStateHolding();
@@ -221,11 +260,11 @@ public class UIStateMachine {
                                 })
                                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                        nextState();
                                         DBAdapter db = new DBAdapter(context);
                                         db.open();
                                         db.addTime(System.currentTimeMillis(), val);
                                         db.close();
+                                        nextState();
                                         dialog.dismiss();
                                     }
                                 }).show();
@@ -240,6 +279,34 @@ public class UIStateMachine {
 
     private static Bitmap getScaledBitmap(Bitmap b, float reqWidth) {
         return Bitmap.createScaledBitmap(b, (int)reqWidth, (int)((float)b.getHeight() * reqWidth / (float)b.getWidth() ), true);
+    }
+
+    private void updateStats() {
+        int avgAll = 0, avg5 = 0, avg25 = 0, low = Integer.MAX_VALUE, high = Integer.MIN_VALUE, val;
+        DBAdapter db = new DBAdapter(context);
+        db.open();
+        Cursor cursor;
+        if ((cursor = db.getAllTimes()) != null && cursor.moveToFirst()) {
+            do {
+                val = cursor.getInt(1);
+                if (cursor.getPosition() < 5) avg5 += val;
+                if (cursor.getPosition() < 25) avg25 += val;
+                avgAll += val;
+                if (val > high) high = val;
+                if (val < low) low = val;
+            } while (cursor.moveToNext());
+
+            avgAll = avgAll / cursor.getCount();
+            avg5 = avg5 / 5;
+            avg25 = avg25 / 25;
+
+            stats.setText("Average Score:  " + formatString(avgAll) +
+                    (cursor.getCount() > 25 ? "\nLast 25 Average:  " + formatString(avg25) : "") +
+                    (cursor.getCount() > 5 ? "\nLast 5 Average:  " + formatString(avg5) : "") +
+                    "\nFastest Score:  " + formatString(low) +
+                    "\nLast Score:  " + (cursor.moveToFirst() ? formatString(cursor.getInt(1)) : formatString(0)));
+        } else stats.setText("");
+        db.close();
     }
 
     private String formatString(long millis) {

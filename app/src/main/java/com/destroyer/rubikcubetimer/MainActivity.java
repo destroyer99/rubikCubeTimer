@@ -22,19 +22,10 @@ import android.widget.TextView;
 import java.util.concurrent.TimeUnit;
 
 /*TODO:
-    timer font style/color
     stats
         -> font style/color
         -> viewer/editor (database)
         -> show last: 1, 5, 10/12, 50, 100, month
-    countdown timer
-        -> toggle-able
-        -> after start, goes to CDT and must set cube
-           on proximity within X seconds or go back to start
-    recolor STOP button to green or change RUNNING glow color
-    pass TextViews to state machine to toggle/edit viewable text
-    fix lag from RUNNING -> STOPPED, time jumping from lag
-    add text on dotted_line.png "Place Cube Here"
  */
 
 public class MainActivity extends Activity {
@@ -136,7 +127,7 @@ public class MainActivity extends Activity {
         super.onResume();
         timerPrecision = Integer.valueOf(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("timerPrecision", "21"));
         gyroThreshold = Float.valueOf(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("gyroThreshold", "18")) / 1000;
-        updateStats();
+        stateMachine.updateTimer();
         stateMachine.setState(UIStateMachine.STATES.START);
     }
 
@@ -150,7 +141,6 @@ public class MainActivity extends Activity {
         switch (stateMachine.getState()) {
             case START:
                 mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_FASTEST);
-                updateStats();
                 break;
 
             case WAITING: case HOLDING: case READY:
@@ -162,27 +152,6 @@ public class MainActivity extends Activity {
             default:
                 break;
         }
-    }
-
-    private void updateStats() {
-        int avg = 0, low = Integer.MAX_VALUE, high = Integer.MIN_VALUE, val;
-        DBAdapter db = new DBAdapter(this);
-        db.open();
-        Cursor cursor;
-        if ((cursor = db.getAllTimes()) != null && cursor.moveToFirst()) {
-            do {
-                val = cursor.getInt(1);
-                avg += val;
-                if (val > high) high = val;
-                if (val < low) low = val;
-            } while (cursor.moveToNext());
-
-            avg = avg / cursor.getCount();
-
-            statsTxt.setText("Average Score:  " + formatString(avg) +
-                    "\nFastest Score:  " + formatString(low) +
-                    "\nLast Score:  " + (cursor.moveToFirst() ? formatString(cursor.getInt(1)) : formatString(0)));
-        } else statsTxt.setText("");
     }
 
     private String formatString(long millis) {

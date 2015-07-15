@@ -38,5 +38,21 @@
             android:summary="Vibrate on count down"
             android:summaryOn="On"
             android:summaryOff="Off" />
+
+        <SwitchPreference
+            android:title="Count Down Timer"
+            android:key="cdt"
+            android:defaultValue="true"
+            android:summary="Enable Count Down Timer"
+            android:summaryOn="On"
+            android:summaryOff="Off" />
+
+        <EditTextPreference
+            android:title="CDT Time"
+            android:key="cdtTime"
+            android:defaultValue="16"
+            android:editable="true"
+            android:inputType="number"
+            android:summary="Count Down Timer in seconds" />
     </PreferenceCategory>
 </PreferenceScreen>
