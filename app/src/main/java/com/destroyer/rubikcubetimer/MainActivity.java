@@ -3,8 +3,6 @@ package com.destroyer.rubikcubetimer;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Canvas;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -115,7 +113,7 @@ public class MainActivity extends Activity {
         stateMachine = new UIStateMachine(this, displayMetrics.widthPixels, displayMetrics.ydpi, findViewById(R.id.bkgGlow), findViewById(R.id.startResetBtn),
                 findViewById(R.id.dottedLine), findViewById(R.id.cube), statsTxt, timerTxt, findViewById(R.id.bkgMain));
         stateMachine.addState(UIStateMachine.STATES.START, UIStateMachine.STATES.WAITING, R.drawable.glow_start_rainbow, R.drawable.btn_start);
-        stateMachine.addState(UIStateMachine.STATES.WAITING, UIStateMachine.STATES.HOLDING, R.drawable.btn_waiting_old, R.drawable.btn_waiting_old);
+        stateMachine.addState(UIStateMachine.STATES.WAITING, UIStateMachine.STATES.HOLDING, R.drawable.btn_waiting, R.drawable.btn_waiting);
         stateMachine.addState(UIStateMachine.STATES.HOLDING, UIStateMachine.STATES.READY, R.drawable.glow_holding, R.drawable.btn_holding);
         stateMachine.addState(UIStateMachine.STATES.READY, UIStateMachine.STATES.RUNNING, R.drawable.glow_ready, R.drawable.btn_ready);
         stateMachine.addState(UIStateMachine.STATES.RUNNING, UIStateMachine.STATES.STOPPING, R.drawable.glow_running, R.drawable.btn_running);
