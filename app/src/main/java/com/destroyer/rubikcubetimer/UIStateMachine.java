@@ -6,12 +6,15 @@ import android.content.DialogInterface;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -48,6 +51,17 @@ public class UIStateMachine {
 
     private CountDownTimer cdt;
 
+    private Animation animationFadeOut, animationFadeIn;
+//    private Float cubeAlpha;
+//
+//    private Runnable cubeAnimation = new Runnable() {
+//        @Override
+//        public void run() {
+//            cube.setAlpha(cubeAlpha);
+//            cubeAlpha-=0.1f;
+//        }
+//    };
+
     public UIStateMachine(Context context, float displayWidth, float displayHeight, View... views) {
         this.context = context;
         this.displayHeight = displayHeight;
@@ -59,16 +73,25 @@ public class UIStateMachine {
         this.timer = (TextView)views[5];
         this.halt = false;
 
+        timer.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HEMIHEAD.TTF"));
+        timer.setTextSize(100);
+        timer.setTextColor(Color.RED);
+
+        animationFadeIn = AnimationUtils.loadAnimation(context, R.anim.fadein);
+        animationFadeOut = AnimationUtils.loadAnimation(context, R.anim.fadeout);
+        animationFadeIn.setFillAfter(true);
+        animationFadeOut.setFillAfter(true);
+
         cdt = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "10")) + 1) * 1000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                stats.setText(String.format("\n%d...", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)));
+                timer.setText(String.format("\n%d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)));
             }
 
             @Override
             public void onFinish() {
-                stats.setTextSize(30);
-                stats.setText("PLACE CUBE\nNOW!!!");
+//                stats.setTextSize(30);
+//                stats.setText("PLACE CUBE\nNOW!!!");
             }
         };
 
@@ -137,13 +160,13 @@ public class UIStateMachine {
         cdt = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "10")) + 1) * 1000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                stats.setText(String.format("\n%d...", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)));
+                timer.setText(String.format("\n%d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)));
             }
 
             @Override
             public void onFinish() {
-                stats.setTextSize(30);
-                stats.setText("PLACE CUBE\nNOW!!!");
+//                stats.setTextSize(30);
+//                stats.setText("PLACE CUBE\nNOW!!!");
             }
         };
     }
@@ -156,8 +179,9 @@ public class UIStateMachine {
         this.currentState = state;
         switch (currentState.state) {
             case START:
-                stats.setTextSize(24);
-                stats.setTypeface(null, Typeface.NORMAL);
+                cube.startAnimation(animationFadeIn);
+//                stats.setTextSize(24);
+//                stats.setTypeface(null, Typeface.NORMAL);
                 updateStats();
 
                 this.timer.setVisibility(View.GONE);
@@ -173,17 +197,19 @@ public class UIStateMachine {
                 break;
 
             case WAITING:
+                cube.startAnimation(animationFadeOut);
                 if (context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("cdt", true)) {
-                    stats.setText("");
-                    stats.setTextSize(50);
-                    stats.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HEMIHEAD.TTF"));
-                    this.stats.setVisibility(View.VISIBLE);
+//                    stats.setText("");
+//                    stats.setTextSize(50);
+//                    stats.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HEMIHEAD.TTF"));
+//                    this.stats.setVisibility(View.VISIBLE);
+                    this.timer.setVisibility(View.VISIBLE);
                     cdt.start();
-                } else {
-                    this.stats.setVisibility(View.GONE);
+//                } else {
                 }
+                this.stats.setVisibility(View.GONE);
 
-                float height = (float)(displayHeight / 1.2);
+                float height = (float)(displayHeight / .75);
                 dotLine.setY(height);
                 this.dotLine.setVisibility(View.VISIBLE);
 
@@ -230,7 +256,7 @@ public class UIStateMachine {
 
             case RUNNING:
                 this.dotLine.setVisibility(View.GONE);
-                this.cube.setVisibility(View.GONE);
+//                this.cube.setVisibility(View.GONE);
                 this.timer.setVisibility(View.VISIBLE);
                 btn.setClickable(false);
 
