@@ -1,24 +1,20 @@
 package com.destroyer.rubikcubetimer;
 
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
-import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.concurrent.ExecutionException;
 
 public class SettingsActivity extends PreferenceActivity {
 
@@ -30,11 +26,11 @@ public class SettingsActivity extends PreferenceActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        context = this;
-
         getPreferenceManager().setSharedPreferencesName("appPreferences");
         addPreferencesFromResource(R.xml.activity_settings);
-        prefEditor = getSharedPreferences("appPreferences", Context.MODE_PRIVATE).edit();
+        prefEditor = getSharedPreferences("appPreferences", MODE_PRIVATE).edit();
+
+        context = this;
 
         findPreference("clearDB").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
@@ -50,8 +46,8 @@ public class SettingsActivity extends PreferenceActivity {
                         })
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                new DBAdapter(getApplicationContext()).open().removeAllScores().close();
-                                Toast.makeText(getApplicationContext(), "Cleared Scores", Toast.LENGTH_LONG).show();
+                                new DBAdapter(context).open().removeAllScores().close();
+                                Toast.makeText(context, "Cleared Scores", Toast.LENGTH_LONG).show();
                                 dialog.dismiss();
                             }
                         })
@@ -60,23 +56,17 @@ public class SettingsActivity extends PreferenceActivity {
             }
         });
 
-        final View convertView = LayoutInflater.from(this).inflate(R.layout.font_layout, null);
-//        final View convertView = this.getLayoutInflater().inflate(R.layout.font_layout, null);
-        ((TextView)convertView.findViewById(R.id.AtomicClockRadio)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
-        ((TextView)convertView.findViewById(R.id.BaarPhilos)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/baarpbi_.otf"));
-        ((TextView)convertView.findViewById(R.id.Delusion)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/DELUSION.otf"));
-//        ((TextView)convertView.findViewById(R.id.AtomicClockRadio)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
-//        ((TextView)convertView.findViewById(R.id.AtomicClockRadio)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
-//        ((TextView)convertView.findViewById(R.id.AtomicClockRadio)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
-//        ((TextView)convertView.findViewById(R.id.AtomicClockRadio)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
-//        ((TextView)convertView.findViewById(R.id.AtomicClockRadio)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
-//        ((TextView)convertView.findViewById(R.id.AtomicClockRadio)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
-//        ((TextView)convertView.findViewById(R.id.AtomicClockRadio)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
-//        ((TextView)convertView.findViewById(R.id.AtomicClockRadio)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
-
         findPreference("timerFont").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
+                final View convertView = LayoutInflater.from(context).inflate(R.layout.font_layout, null);
+                ((TextView)convertView.findViewById(R.id.AtomicClockRadio)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
+                ((TextView)convertView.findViewById(R.id.BaarPhilos)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/baarpbi_.otf"));
+                ((TextView)convertView.findViewById(R.id.Delusion)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/DELUSION.otf"));
+
+                final RadioGroup fontGroup = (RadioGroup) convertView.findViewById(R.id.fontsGroup);
+                fontGroup.check(getResources().getIdentifier(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("fontID", "AtomicClockRadio"), "id", context.getPackageName()));
+
                 new AlertDialog.Builder(context)
                         .setTitle("Timer Fonts")
                         .setView(convertView)
@@ -88,7 +78,8 @@ public class SettingsActivity extends PreferenceActivity {
                         })
                         .setPositiveButton("Apply", new DialogInterface.OnClickListener() {
                             public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                prefEditor.putString("timerFont", selectedFont);
+                                prefEditor.putString("timerFont", convertView.findViewById(fontGroup.getCheckedRadioButtonId()).getTag().toString());
+                                prefEditor.putString("fontID", String.valueOf(convertView.findViewById(fontGroup.getCheckedRadioButtonId()).getId()));
                                 prefEditor.commit();
                                 dialog.dismiss();
                             }

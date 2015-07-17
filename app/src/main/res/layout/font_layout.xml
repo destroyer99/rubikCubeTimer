@@ -3,7 +3,7 @@
 <RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/fonts">
+    android:id="@+id/fontsGroup">
 
     <RadioButton
         android:layout_width="fill_parent"

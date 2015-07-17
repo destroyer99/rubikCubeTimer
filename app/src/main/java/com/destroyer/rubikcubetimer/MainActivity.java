@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
                     gyroLast[2] = Math.abs(event.values[2]);
                 }
             } else if(event.sensor.getType()==Sensor.TYPE_PROXIMITY) {
-                if (stateMachine.getState() == UIStateMachine.STATES.WAITING && event.values[0] == 0) {
+                if (stateMachine.getState() == UIStateMachine.STATES.WAITING && event.values[0] < 1) {
                     stateMachine.nextState();
                 } else if (stateMachine.getState() == UIStateMachine.STATES.READY && event.values[0] > 1) {
                     mSensorManager.unregisterListener(mSensorListener);
@@ -83,7 +83,7 @@ public class MainActivity extends Activity {
                     init = System.currentTimeMillis();
                     timerTxt.setTextSize(50);
                     new Handler().post(timer);
-                } else if (stateMachine.getState() != UIStateMachine.STATES.WAITING && event.values[0] > 1) {
+                } else if (stateMachine.getState() != UIStateMachine.STATES.WAITING && event.values[0] >= 1) {
                     stateMachine.haltProcess();
                     stateMachine.setState(UIStateMachine.STATES.WAITING);
                 }
@@ -125,13 +125,13 @@ public class MainActivity extends Activity {
         super.onResume();
         timerPrecision = Integer.valueOf(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("timerPrecision", "21"));
         gyroThreshold = Float.valueOf(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("gyroThreshold", "18")) / 1000;
-        stateMachine.updateTimer();
-        stateMachine.setState(UIStateMachine.STATES.START);
+        stateMachine.resetState();
     }
 
     @Override
     protected void onPause() {
         mSensorManager.unregisterListener(mSensorListener);
+        stateMachine.haltProcess();
         super.onPause();
     }
 
@@ -144,7 +144,6 @@ public class MainActivity extends Activity {
             case WAITING: case HOLDING: case READY:
                 runTimer = gyroSettled = false;
                 mSensorManager.unregisterListener(mSensorListener);
-                stateMachine.haltProcess();
                 stateMachine.resetState();
 
             default:

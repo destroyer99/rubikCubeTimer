@@ -52,14 +52,15 @@ public class UIStateMachine {
     private List<State> stateList;
 
     private long val;
-    private boolean halt;
 
-    private CountDownTimer cdt;
+    private CountDownTimer cdtWaiting, cdtHolding;
+    private boolean vibrate;
+    private Vibrator vibrator;
 
     private Animation animationFadeOut, animationFadeIn, animationBlink, animationFadeOutComplete, animationFadeInComplete;
 
-    public UIStateMachine(Context context, float displayWidth, float displayHeight, View... views) {
-        this.context = context;
+    public UIStateMachine(Context ctx, float displayWidth, float displayHeight, View... views) {
+        this.context = ctx;
         this.displayHeight = displayHeight;
         this.bkgGlow = (CustomImageView)views[0];
         this.btn = (CustomImageButton)views[1];
@@ -67,7 +68,6 @@ public class UIStateMachine {
         this.cube = (ImageView)views[3];
         this.stats = (TextView)views[4];
         this.timer = (TextView)views[5];
-        this.halt = false;
 
         animationFadeIn = AnimationUtils.loadAnimation(context, R.anim.fadein);
         animationFadeOut = AnimationUtils.loadAnimation(context, R.anim.fadeout);
@@ -79,7 +79,10 @@ public class UIStateMachine {
         animationFadeOutComplete.setFillAfter(true);
         animationBlink = AnimationUtils.loadAnimation(context, R.anim.blink);
 
-        cdt = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "10")) + 1) * 1000, 1000) {
+        vibrate = context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("vibrate", true);
+        vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+
+        cdtWaiting = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "10")) + 1) * 1000, 100) {
             @Override
             public void onTick(long millisUntilFinished) {
                 timer.setText(String.format("%d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)));
@@ -87,10 +90,28 @@ public class UIStateMachine {
 
             @Override
             public void onFinish() {
+                stats.startAnimation(animationBlink);
                 stats.setTextSize(30);
-                stats.setText("PLACE CUBE\nNOW!!!");
+                stats.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/baarpbi_.otf"));
+                stats.setText("Place cube here\nto start your\nsolve!!!");
                 stats.setVisibility(View.VISIBLE);
-                timer.setVisibility(View.GONE);
+//                timer.setVisibility(View.GONE);
+                timer.startAnimation(animationFadeOutComplete);
+            }
+        };
+
+        cdtHolding = new CountDownTimer(3000, 100) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                if (millisUntilFinished < val*1000) {
+                    if (vibrate) vibrator.vibrate(250);
+                    timer.setText(String.valueOf(val--));
+                }
+            }
+
+            @Override
+            public void onFinish() {
+                nextState();
             }
         };
 
@@ -104,8 +125,8 @@ public class UIStateMachine {
         Stops the HOLDING state from proceeding and should return the state to WAITING
      */
     public void haltProcess() {
-        this.halt = true;
-        this.cdt.cancel();
+        this.cdtWaiting.cancel();
+        this.cdtHolding.cancel();
     }
 
     /*
@@ -119,7 +140,9 @@ public class UIStateMachine {
         reset currentState to START (or whatever the first defined state is)
      */
     public void resetState() {
-        this.setCurrentState(this.stateList.get(STATES.START.ordinal()));
+        haltProcess();
+        timer.clearAnimation();
+        this.setCurrentState(this.stateList.get(STATES.START.ordinal()), null);
     }
 
     /*
@@ -133,14 +156,14 @@ public class UIStateMachine {
         public call to execute stateMachine to next state
      */
     public void nextState() {
-        setCurrentState(stateList.get(currentState.nextState));
+        setCurrentState(stateList.get(currentState.nextState), currentState);
     }
 
     /*
         public call to explicitly set the currentState
      */
     public void setState(STATES state) {
-        this.setCurrentState(stateList.get(state.ordinal()));
+        this.setCurrentState(stateList.get(state.ordinal()), currentState);
     }
 
     /*
@@ -155,30 +178,11 @@ public class UIStateMachine {
         this.val = val;
     }
 
-    public void updateTimer() {
-        cdt = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "10")) + 1) * 1000, 100) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                timer.setText(String.format("%d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)));
-            }
-
-            @Override
-            public void onFinish() {
-                stats.startAnimation(animationBlink);
-                stats.setTextSize(30);
-                stats.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/baarpbi_.otf"));
-                stats.setText("Place cube here\nto start your\nsolve!!!");
-                stats.setVisibility(View.VISIBLE);
-                timer.setVisibility(View.GONE);
-            }
-        };
-    }
-
     /*
         stateMachine Core
         defines actions for each state
      */
-    private void setCurrentState(final State state) {
+    private void setCurrentState(final State state, final State previousState) {
         this.currentState = state;
         switch (currentState.state) {
             case START:
@@ -203,20 +207,25 @@ public class UIStateMachine {
                 break;
 
             case WAITING:
-                cube.startAnimation(animationFadeOut);
-                stats.startAnimation(animationFadeInComplete);
-                dotLine.startAnimation(animationFadeInComplete);
-                if (context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("cdt", true)) {
-                    timer.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
-                    timer.setTextSize(100);
-                    timer.setTextColor(Color.RED);
-                    timer.setVisibility(View.VISIBLE);
-                    cdt.start();
-                } else {
+                cdtHolding.cancel();
+                cdtWaiting.cancel();
+                timer.setText("");
+                if (previousState.state == STATES.START) {
+                    cube.startAnimation(animationFadeOut);
+                    stats.startAnimation(animationFadeInComplete);
+                    dotLine.startAnimation(animationFadeInComplete);
+                    if (context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("cdt", true)) {
+                        timer.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
+                        timer.setTextSize(100);
+                        timer.setTextColor(Color.RED);
+                        timer.setVisibility(View.VISIBLE);
+                        cdtWaiting.start();
+                    }
+                }
+                else {
                     stats.startAnimation(animationBlink);
                     timer.setVisibility(View.GONE);
                 }
-                stats.setVisibility(View.GONE);
 
                 float height = (float)(displayHeight / .75);
                 dotLine.setY(height);
@@ -234,27 +243,11 @@ public class UIStateMachine {
                 break;
 
             case HOLDING:
-                halt = false;
-                cdt.cancel();
+                cdtWaiting.cancel();
                 stats.clearAnimation();
-                final boolean vibrate = context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("vibrate", true);
-                final Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-                val = 3;
-                Runnable cubeHolder = new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!halt) {
-                            if (val-- > 0) {
-                                if (vibrate) vibrator.vibrate(250);
-                                timer.setText(String.valueOf(val));
-                                new Handler().postDelayed(this, 1000);
-                            } else {
-                                nextState();
-                            }
-                        }
-                    }
-                };
+
                 timer.setText("");
+                timer.clearAnimation();
                 timer.setVisibility(View.VISIBLE);
                 timer.setTextColor(Color.YELLOW);
                 stats.setVisibility(View.GONE);
@@ -263,12 +256,17 @@ public class UIStateMachine {
                 btn.refreshDrawableState();
                 bkgGlow.setStateHolding();
                 bkgGlow.refreshDrawableState();
+
+                val = 3;
                 if (vibrate) vibrator.vibrate(250);
-                timer.setText(String.valueOf(val));
-                new Handler().postDelayed(cubeHolder, 1000);
+                timer.setText(String.valueOf(val--));
+                cdtHolding.start();
                 break;
 
             case READY:
+                if (vibrate) vibrator.vibrate(750);
+                dotLine.clearAnimation();
+                dotLine.setVisibility(View.GONE);
                 timer.setTextColor(Color.WHITE);
                 timer.setTextSize(42);
                 timer.setText("Lift cube to\nstart timer!");
@@ -282,12 +280,9 @@ public class UIStateMachine {
 
             case RUNNING:
                 dotLine.clearAnimation();
-                dotLine.setVisibility(View.GONE);
                 cube.setVisibility(View.GONE);
                 timer.setTextColor(Color.WHITE);
                 getFontFromPreference(timer);
-//                timer.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
-//                timer.setTextSize(100);
                 timer.setVisibility(View.VISIBLE);
                 btn.setClickable(false);
 
@@ -389,6 +384,18 @@ public class UIStateMachine {
     }
 
     private String formatString(long millis) {
+        return (TimeUnit.MILLISECONDS.toMinutes(millis) > 0 ?
+                String.format("%d:%02d:%02d",
+                        TimeUnit.MILLISECONDS.toMinutes(millis),
+                        TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)),
+                        TimeUnit.MILLISECONDS.toMillis(millis) - TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(millis)))
+                :
+                String.format("%02d:%02d",
+                        TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)),
+                        TimeUnit.MILLISECONDS.toMillis(millis) - TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(millis))));
+    }
+
+    private String formatString_Old(long millis) {
         return (TimeUnit.MILLISECONDS.toMinutes(millis) > 0 ?
                 String.format("%d:%02d:%02d",
                         (millis / (1000 * 60)),
