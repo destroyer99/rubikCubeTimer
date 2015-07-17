@@ -154,14 +154,14 @@ public class MainActivity extends Activity {
 
     private String formatString(long millis) {
         return (TimeUnit.MILLISECONDS.toMinutes(millis) > 0 ?
-                String.format("%d:%02d:%03d",
-                        TimeUnit.MILLISECONDS.toMinutes(millis),
-                        TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)),
-                        TimeUnit.MILLISECONDS.toMillis(millis) - TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(millis)))
+                String.format("%d:%02d:%02d",
+                        (millis / (1000 * 60)),
+                        ((millis / 1000) % 60),
+                        ((millis / 10)%100))
                 :
-                String.format("%02d:%03d",
-                        TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)),
-                        TimeUnit.MILLISECONDS.toMillis(millis) - TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(millis))));
+                String.format("%02d:%02d",
+                        ((millis / 1000) % 60),
+                        ((millis / 10)%100)));
     }
 
     @Override

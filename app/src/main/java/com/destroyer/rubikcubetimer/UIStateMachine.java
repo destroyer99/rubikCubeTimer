@@ -7,6 +7,8 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -54,7 +56,7 @@ public class UIStateMachine {
 
     private CountDownTimer cdt;
 
-    private Animation animationFadeOut, animationFadeIn;
+    private Animation animationFadeOut, animationFadeIn, animationBlink, animationFadeOutComplete, animationFadeInComplete;
 
     public UIStateMachine(Context context, float displayWidth, float displayHeight, View... views) {
         this.context = context;
@@ -69,8 +71,13 @@ public class UIStateMachine {
 
         animationFadeIn = AnimationUtils.loadAnimation(context, R.anim.fadein);
         animationFadeOut = AnimationUtils.loadAnimation(context, R.anim.fadeout);
+        animationFadeInComplete = AnimationUtils.loadAnimation(context, R.anim.fadeincomplete);
+        animationFadeOutComplete = AnimationUtils.loadAnimation(context, R.anim.fadeoutcomplete);
         animationFadeIn.setFillAfter(true);
         animationFadeOut.setFillAfter(true);
+        animationFadeInComplete.setFillAfter(true);
+        animationFadeOutComplete.setFillAfter(true);
+        animationBlink = AnimationUtils.loadAnimation(context, R.anim.blink);
 
         cdt = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "10")) + 1) * 1000, 1000) {
             @Override
@@ -157,6 +164,11 @@ public class UIStateMachine {
 
             @Override
             public void onFinish() {
+                stats.startAnimation(animationBlink);
+                stats.setTextSize(30);
+                stats.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/baarpbi_.otf"));
+                stats.setText("Place cube here\nto start your\nsolve!!!");
+                stats.setVisibility(View.VISIBLE);
                 timer.setVisibility(View.GONE);
             }
         };
@@ -170,7 +182,9 @@ public class UIStateMachine {
         this.currentState = state;
         switch (currentState.state) {
             case START:
+                dotLine.clearAnimation();
                 cube.startAnimation(animationFadeIn);
+                stats.startAnimation(animationFadeInComplete);
                 stats.setTextSize(24);
                 stats.setTypeface(null, Typeface.NORMAL);
                 updateStats();
@@ -179,6 +193,7 @@ public class UIStateMachine {
                 dotLine.setVisibility(View.GONE);
                 cube.setVisibility(View.VISIBLE);
                 stats.setVisibility(View.VISIBLE);
+                stats.clearAnimation();
                 btn.setClickable(true);
 
                 btn.setStateStart();
@@ -189,13 +204,16 @@ public class UIStateMachine {
 
             case WAITING:
                 cube.startAnimation(animationFadeOut);
+                stats.startAnimation(animationFadeInComplete);
+                dotLine.startAnimation(animationFadeInComplete);
                 if (context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("cdt", true)) {
-                    timer.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HEMIHEAD.TTF"));
+                    timer.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
                     timer.setTextSize(100);
                     timer.setTextColor(Color.RED);
                     timer.setVisibility(View.VISIBLE);
                     cdt.start();
                 } else {
+                    stats.startAnimation(animationBlink);
                     timer.setVisibility(View.GONE);
                 }
                 stats.setVisibility(View.GONE);
@@ -205,7 +223,7 @@ public class UIStateMachine {
                 dotLine.setVisibility(View.VISIBLE);
 
                 stats.setTextSize(30);
-                stats.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/baarpbi_.TTF"));
+                stats.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/baarpbi_.otf"));
                 stats.setText("Place cube here\nto start your\nsolve!!!");
                 stats.setVisibility(View.VISIBLE);
 
@@ -218,6 +236,7 @@ public class UIStateMachine {
             case HOLDING:
                 halt = false;
                 cdt.cancel();
+                stats.clearAnimation();
                 final boolean vibrate = context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("vibrate", true);
                 final Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
                 val = 3;
@@ -262,10 +281,11 @@ public class UIStateMachine {
                 break;
 
             case RUNNING:
+                dotLine.clearAnimation();
                 dotLine.setVisibility(View.GONE);
-//                this.cube.setVisibility(View.GONE);
+                cube.setVisibility(View.GONE);
                 timer.setTextColor(Color.WHITE);
-                timer.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.TTF"));
+                timer.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
                 timer.setTextSize(100);
                 timer.setVisibility(View.VISIBLE);
                 btn.setClickable(false);
@@ -347,14 +367,14 @@ public class UIStateMachine {
 
     private String formatString(long millis) {
         return (TimeUnit.MILLISECONDS.toMinutes(millis) > 0 ?
-                String.format("%d:%02d:%03d",
-                        TimeUnit.MILLISECONDS.toMinutes(millis),
-                        TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)),
-                        TimeUnit.MILLISECONDS.toMillis(millis) - TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(millis)))
+                String.format("%d:%02d:%02d",
+                        (millis / (1000 * 60)),
+                        ((millis / 1000) % 60),
+                        ((millis / 10)%100))
                 :
-                String.format("%02d:%03d",
-                        TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)),
-                        TimeUnit.MILLISECONDS.toMillis(millis) - TimeUnit.SECONDS.toMillis(TimeUnit.MILLISECONDS.toSeconds(millis))));
+                String.format("%02d:%02d",
+                        ((millis / 1000) % 60),
+                        ((millis / 10)%100)));
     }
 
     private class State {
