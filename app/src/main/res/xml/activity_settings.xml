@@ -54,5 +54,10 @@
             android:editable="true"
             android:inputType="number"
             android:summary="Count Down Timer in seconds" />
+
+        <Preference
+            android:title="Change Timer Font"
+            android:key="timerFont"
+            android:summary="Change the font of the main Timer" />
     </PreferenceCategory>
 </PreferenceScreen>

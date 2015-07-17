@@ -285,8 +285,9 @@ public class UIStateMachine {
                 dotLine.setVisibility(View.GONE);
                 cube.setVisibility(View.GONE);
                 timer.setTextColor(Color.WHITE);
-                timer.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
-                timer.setTextSize(100);
+                getFontFromPreference(timer);
+//                timer.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
+//                timer.setTextSize(100);
                 timer.setVisibility(View.VISIBLE);
                 btn.setClickable(false);
 
@@ -335,6 +336,28 @@ public class UIStateMachine {
 
     private static Bitmap getScaledBitmap(Bitmap b, float reqWidth) {
         return Bitmap.createScaledBitmap(b, (int)reqWidth, (int)((float)b.getHeight() * reqWidth / (float)b.getWidth() ), true);
+    }
+
+    private void getFontFromPreference(TextView textView){
+        switch (context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("timerFont", "atomic")){
+            case "atomic":
+                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
+                textView.setTextSize(100);
+                break;
+
+            case "baar":
+                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/baarpbi_.otf"));
+                textView.setTextSize(100);
+                break;
+
+            case "delusion":
+                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/DELUSION.otf"));
+                textView.setTextSize(100);
+                break;
+
+            default:
+                break;
+        }
     }
 
     private void updateStats() {
