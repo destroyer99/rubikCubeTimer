@@ -25,6 +25,9 @@ import java.util.concurrent.TimeUnit;
 
 /*TODO:
     fix state linking/pointing errors (either here or in MainActivity)  (fixed?????)
+    in STATE.WAITING
+        -> set "Place cube here" text to display while the CDT is running
+        -> when the CDT expires, start text flashing animation
  */
 
 public class UIStateMachine {
@@ -72,7 +75,7 @@ public class UIStateMachine {
         cdt = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "10")) + 1) * 1000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                timer.setText(String.format("\n%d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)));
+                timer.setText(String.format("%d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)));
             }
 
             @Override
@@ -149,15 +152,11 @@ public class UIStateMachine {
         cdt = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "10")) + 1) * 1000, 100) {
             @Override
             public void onTick(long millisUntilFinished) {
-                timer.setText(String.format("\n%d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)));
+                timer.setText(String.format("%d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)));
             }
 
             @Override
             public void onFinish() {
-                stats.setTextSize(30);
-                stats.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/baarpbi_.TTF"));
-                stats.setText("Place cube here\nto start your\nsolve!!!");
-                stats.setVisibility(View.VISIBLE);
                 timer.setVisibility(View.GONE);
             }
         };
@@ -176,10 +175,10 @@ public class UIStateMachine {
                 stats.setTypeface(null, Typeface.NORMAL);
                 updateStats();
 
-                this.timer.setVisibility(View.GONE);
-                this.dotLine.setVisibility(View.GONE);
-                this.cube.setVisibility(View.VISIBLE);
-                this.stats.setVisibility(View.VISIBLE);
+                timer.setVisibility(View.GONE);
+                dotLine.setVisibility(View.GONE);
+                cube.setVisibility(View.VISIBLE);
+                stats.setVisibility(View.VISIBLE);
                 btn.setClickable(true);
 
                 btn.setStateStart();
@@ -194,14 +193,21 @@ public class UIStateMachine {
                     timer.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HEMIHEAD.TTF"));
                     timer.setTextSize(100);
                     timer.setTextColor(Color.RED);
-                    this.timer.setVisibility(View.VISIBLE);
+                    timer.setVisibility(View.VISIBLE);
                     cdt.start();
+                } else {
+                    timer.setVisibility(View.GONE);
                 }
-                this.stats.setVisibility(View.GONE);
+                stats.setVisibility(View.GONE);
 
                 float height = (float)(displayHeight / .75);
                 dotLine.setY(height);
-                this.dotLine.setVisibility(View.VISIBLE);
+                dotLine.setVisibility(View.VISIBLE);
+
+                stats.setTextSize(30);
+                stats.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/baarpbi_.TTF"));
+                stats.setText("Place cube here\nto start your\nsolve!!!");
+                stats.setVisibility(View.VISIBLE);
 
                 btn.setStateWaiting();
                 bkgGlow.setStateWaiting();
@@ -210,16 +216,18 @@ public class UIStateMachine {
                 break;
 
             case HOLDING:
-                this.halt = false;
+                halt = false;
+                cdt.cancel();
                 final boolean vibrate = context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("vibrate", true);
                 final Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-                val = 0;
+                val = 3;
                 Runnable cubeHolder = new Runnable() {
                     @Override
                     public void run() {
                         if (!halt) {
-                            if (val++ < 2) {
+                            if (val-- > 0) {
                                 if (vibrate) vibrator.vibrate(250);
+                                timer.setText(String.valueOf(val));
                                 new Handler().postDelayed(this, 1000);
                             } else {
                                 nextState();
@@ -227,16 +235,25 @@ public class UIStateMachine {
                         }
                     }
                 };
-                this.stats.setVisibility(View.GONE);
+                timer.setText("");
+                timer.setVisibility(View.VISIBLE);
+                timer.setTextColor(Color.YELLOW);
+                stats.setVisibility(View.GONE);
+
                 btn.setStateHolding();
                 btn.refreshDrawableState();
                 bkgGlow.setStateHolding();
                 bkgGlow.refreshDrawableState();
                 if (vibrate) vibrator.vibrate(250);
+                timer.setText(String.valueOf(val));
                 new Handler().postDelayed(cubeHolder, 1000);
                 break;
 
             case READY:
+                timer.setTextColor(Color.WHITE);
+                timer.setTextSize(42);
+                timer.setText("Lift cube to\nstart timer!");
+
                 btn.setStateReady();
                 btn.refreshDrawableState();
                 bkgGlow.setStateReady();
@@ -245,12 +262,12 @@ public class UIStateMachine {
                 break;
 
             case RUNNING:
-                this.dotLine.setVisibility(View.GONE);
+                dotLine.setVisibility(View.GONE);
 //                this.cube.setVisibility(View.GONE);
                 timer.setTextColor(Color.WHITE);
                 timer.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.TTF"));
                 timer.setTextSize(100);
-                this.timer.setVisibility(View.VISIBLE);
+                timer.setVisibility(View.VISIBLE);
                 btn.setClickable(false);
 
                 btn.setStateRunning();

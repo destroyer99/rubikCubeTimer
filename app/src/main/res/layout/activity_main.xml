@@ -83,14 +83,12 @@
     </LinearLayout>
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:inputType="none"
-        android:ems="10"
         android:id="@+id/timerTxt"
         android:textAlignment="center"
-        android:textSize="18sp"
-        android:textStyle="bold"
+        android:textStyle="bold|italic"
         android:typeface="normal"
         android:gravity="center_horizontal"
         android:layout_centerVertical="true"
@@ -101,10 +99,13 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/statsTxt"
+        android:inputType="none"
+        android:layout_centerHorizontal="true"
         android:textAlignment="center"
         android:gravity="center_horizontal"
         android:textColor="@android:color/white"
-        android:layout_marginTop="30dp"
-        android:textSize="24dp" />
+        android:layout_marginTop="40dp"
+        android:layout_marginLeft="35dp"
+        android:layout_marginRight="35dp" />
 
 </RelativeLayout>
