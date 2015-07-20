@@ -50,7 +50,7 @@
         <EditTextPreference
             android:title="CDT Time"
             android:key="cdtTime"
-            android:defaultValue="16"
+            android:defaultValue="15"
             android:editable="true"
             android:inputType="number"
             android:summary="Count Down Timer in seconds" />
