@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Vibrator;
@@ -68,12 +69,12 @@ public class UIStateMachine {
     public UIStateMachine(Context ctx, float displayWidth, float displayHeight, View... views) {
         this.context = ctx;
         this.displayHeight = displayHeight;
-        this.bkgGlow = (CustomImageView)views[0];
-        this.btn = (CustomImageButton)views[1];
-        this.dotLine = (ImageView)views[2];
+        this.bkgGlow = (CustomImageView)views[1];
+        this.btn = (CustomImageButton)views[2];
         this.cube = (ImageView)views[3];
-        this.statsTxt = (TextView)views[4];
-        this.timerTxt = (TextView)views[5];
+        this.dotLine = (ImageView)views[4];
+        this.statsTxt = (TextView)views[5];
+        this.timerTxt = (TextView)views[6];
 
         animationFadeIn = AnimationUtils.loadAnimation(context, R.anim.fadein);
         animationFadeOut = AnimationUtils.loadAnimation(context, R.anim.fadeout);
@@ -121,25 +122,32 @@ public class UIStateMachine {
             }
         };
 
-        ((ImageView)views[6]).setImageBitmap(getScaledBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.bkg_main), displayWidth));
+        views[0].setBackground(new BitmapDrawable(context.getResources(), getScaledBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.bkg_main), displayWidth)));
         cube.setImageBitmap(getScaledBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.cube), displayWidth / 2));
 
-        this.stateList = new ArrayList<>();
+        stateList = new ArrayList<>();
+
+        stateList.add(STATES.START.ordinal(), new State(STATES.START, STATES.WAITING, R.drawable.glow_start_rainbow, R.drawable.btn_start));
+        stateList.add(STATES.WAITING.ordinal(), new State(STATES.WAITING, STATES.HOLDING, R.drawable.btn_waiting, R.drawable.btn_waiting));
+        stateList.add(STATES.HOLDING.ordinal(), new State(STATES.HOLDING, STATES.READY, R.drawable.glow_holding, R.drawable.btn_holding));
+        stateList.add(STATES.READY.ordinal(), new State(STATES.READY, STATES.RUNNING, R.drawable.glow_ready, R.drawable.btn_ready));
+        stateList.add(STATES.RUNNING.ordinal(), new State(STATES.RUNNING, STATES.STOPPING, R.drawable.glow_running, R.drawable.btn_running));
+        stateList.add(STATES.STOPPING.ordinal(), new State(STATES.STOPPING, STATES.START, R.drawable.glow_finished, R.drawable.btn_finished));
     }
 
     /*
         Stops the HOLDING state from proceeding and should return the state to WAITING
      */
     public void haltProcess() {
-        this.cdtWaiting.cancel();
-        this.cdtHolding.cancel();
+        cdtWaiting.cancel();
+        cdtHolding.cancel();
     }
 
     /*
         create state and add it to the stateList
      */
     public void addState(STATES state, STATES nextState, int bkgGlow, int btnBkg) {
-        this.stateList.add(state.ordinal(), new State(state, nextState.ordinal(), bkgGlow, btnBkg));
+        stateList.add(state.ordinal(), new State(state, nextState.ordinal(), bkgGlow, btnBkg));
     }
 
     /*
@@ -151,14 +159,14 @@ public class UIStateMachine {
         timerTxt.clearAnimation();
         timerPrecision = Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("timerPrecision", "21"));
         vibrate = context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("vibrate", true);
-        this.setCurrentState(this.stateList.get(STATES.START.ordinal()), null);
+        setCurrentState(stateList.get(STATES.START.ordinal()), null);
     }
 
     /*
         get the current state of the stateMachine
      */
     public STATES getState() {
-        return this.currentState.state;
+        return currentState.state;
     }
 
     /*
@@ -172,7 +180,7 @@ public class UIStateMachine {
         public call to explicitly set the currentState
      */
     public void setState(STATES state) {
-        this.setCurrentState(stateList.get(state.ordinal()), currentState);
+        setCurrentState(stateList.get(state.ordinal()), currentState);
     }
 
     /*
@@ -180,7 +188,7 @@ public class UIStateMachine {
         defines actions for each state
      */
     private void setCurrentState(final State state, final State previousState) {
-        this.currentState = state;
+        currentState = state;
         switch (currentState.state) {
             case START:
                 dotLine.clearAnimation();
@@ -249,10 +257,6 @@ public class UIStateMachine {
                 timerTxt.clearAnimation();
                 timerTxt.setTextColor(Color.YELLOW);
                 statsTxt.setText("");
-
-                if (!context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("cdt", true)) {
-
-                }
 
                 btn.setStateHolding();
                 btn.refreshDrawableState();
@@ -415,6 +419,14 @@ public class UIStateMachine {
             this.TAG = state.name();
             this.state = state;
             this.nextState = nextState;
+            this.bkgGlow = bkgGlow;
+            this.btnBkg = btnBkg;
+        }
+
+        public State(STATES state, STATES nextState, int bkgGlow, int btnBkg) {
+            this.TAG = state.name();
+            this.state = state;
+            this.nextState = nextState.ordinal();
             this.bkgGlow = bkgGlow;
             this.btnBkg = btnBkg;
         }
