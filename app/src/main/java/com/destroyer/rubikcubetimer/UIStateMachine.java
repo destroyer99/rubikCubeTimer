@@ -7,12 +7,16 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
@@ -28,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 public class UIStateMachine {
 
-    protected static int STOPPING_TIMEOUT = 2000;
+    protected static int STOPPING_TIMEOUT = 500;
 
     protected enum STATES {START, WAITING, HOLDING, READY, RUNNING, STOPPING}
 
@@ -68,31 +72,7 @@ public class UIStateMachine {
         }
     };
 
-    private final Runnable saveDialog = new Runnable() {
-        @Override
-        public void run() {
-            new AlertDialog.Builder(context)
-                    .setTitle("Save Score")
-                    .setMessage("Save score to Database?\t\t" + formatString(millis))
-                    .setCancelable(true)
-                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                        public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                            nextState();
-                            dialog.cancel();
-                        }
-                    })
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                            DBAdapter db = new DBAdapter(context);
-                            db.open();
-                            db.addTime(System.currentTimeMillis(), millis);
-                            db.close();
-                            nextState();
-                            dialog.dismiss();
-                        }
-                    });
-        }
-    };
+    private Runnable saveDialog;
 
     public UIStateMachine(Context ctx, float displayWidth, float displayHeight, View... views) {
         this.context = ctx;
@@ -114,9 +94,6 @@ public class UIStateMachine {
         animationFadeOutComplete.setFillAfter(true);
         animationBlink = AnimationUtils.loadAnimation(context, R.anim.blink);
 
-        runTimer = false;
-
-        vibrate = context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("vibrate", true);
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 
         cdtWaiting = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "10")) + 1) * 1000, 100) {
@@ -129,7 +106,7 @@ public class UIStateMachine {
             public void onFinish() {
                 statsTxt.startAnimation(animationBlink);
                 statsTxt.setTextSize(30);
-                statsTxt.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/baarpbi_.otf"));
+                statsTxt.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
                 statsTxt.setText("Place cube here\nto start your\nsolve!!!");
                 timerTxt.startAnimation(animationFadeOutComplete);
             }
@@ -147,6 +124,32 @@ public class UIStateMachine {
             @Override
             public void onFinish() {
                 nextState();
+            }
+        };
+
+        saveDialog = new Runnable() {
+            @Override
+            public void run() {
+                new AlertDialog.Builder(context)
+                        .setTitle("Save Score")
+                        .setMessage("Save score to Database?\t\t" + formatString(millis))
+                        .setCancelable(true)
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                nextState();
+                                dialog.cancel();
+                            }
+                        })
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                DBAdapter db = new DBAdapter(context);
+                                db.open();
+                                db.addTime(System.currentTimeMillis(), millis);
+                                db.close();
+                                nextState();
+                                dialog.dismiss();
+                            }
+                        }).show();
             }
         };
 
@@ -170,7 +173,9 @@ public class UIStateMachine {
         cdtWaiting.cancel();
         cdtHolding.cancel();
         runTimer = false;
-        handler.removeCallbacks(saveDialog);
+        if(handler!= null){
+            handler.removeCallbacks(saveDialog);
+        }
     }
 
     /*
@@ -222,6 +227,13 @@ public class UIStateMachine {
             case START:
                 dotLine.clearAnimation();
                 cube.startAnimation(animationFadeIn);
+                timerTxt.setTextColor(Color.WHITE);
+                timerTxt.setBackgroundColor(Color.TRANSPARENT);
+
+                ViewGroup.LayoutParams params = timerTxt.getLayoutParams();
+                params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                timerTxt.setLayoutParams(params);
+
                 statsTxt.startAnimation(animationFadeInComplete);
                 statsTxt.setTextSize(24);
                 statsTxt.setTypeface(null, Typeface.NORMAL);
@@ -269,7 +281,7 @@ public class UIStateMachine {
                 dotLine.setVisibility(View.VISIBLE);
 
                 statsTxt.setTextSize(30);
-                statsTxt.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/baarpbi_.otf"));
+                statsTxt.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
                 statsTxt.setText("Place cube here\nto start your\nsolve!!!");
 
                 btn.setStateWaiting();
@@ -354,17 +366,69 @@ public class UIStateMachine {
         switch (context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("timerFont", "atomic")){
             case "atomic":
                 textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
-                textView.setTextSize(50);
+                textView.setTextSize(48);
                 break;
 
-            case "baar":
-                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/baarpbi_.otf"));
-                textView.setTextSize(50);
+            case "chickenscratch":
+                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ChickenScratch.otf"));
+                textView.setTextSize(80);
+                break;
+
+            case "comicbook":
+                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ComicBook.otf"));
+                textView.setTextSize(80);
                 break;
 
             case "delusion":
-                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/DELUSION.otf"));
-                textView.setTextSize(50);
+                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/Delusion.otf"));
+                textView.setTextSize(85);
+                break;
+
+            case "eroded":
+                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/RetroErosion.otf"));
+                textView.setTextSize(75);
+                break;
+
+            case "earthquake":
+                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/Erthqake.otf"));
+                textView.setTextSize(55);
+                break;
+
+            case "ghetto":
+                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ghettomarquee.otf"));
+                textView.setTextSize(65);
+                textView.setTextColor(Color.BLACK);
+//                textView.setBackgroundColor(Color.WHITE);
+                textView.setBackgroundResource(R.drawable.white_gradient);
+//                textView.setBackgroundDrawable("@drawable/white_gradient");
+                ViewGroup.LayoutParams params = timerTxt.getLayoutParams();
+                params.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+                timerTxt.setLayoutParams(params);
+                break;
+
+            case "hemihead426":
+                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
+                textView.setTextSize(80);
+                break;
+
+            case "jerrybuilt":
+                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/Jerrybuilt.otf"));
+                textView.setTextSize(75);
+                break;
+
+            case "letsgodigital":
+                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/LetsgoDigital.otf"));
+                textView.setTextSize(80);
+                break;
+
+            case "rugged":
+                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/RuggedRide.otf"));
+                textView.setTextSize(80);
+                break;
+
+            case "see":
+                textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/See.otf"));
+                textView.setTextSize(65);
                 break;
 
             default:

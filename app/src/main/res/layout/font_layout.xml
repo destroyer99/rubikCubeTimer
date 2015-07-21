@@ -17,11 +17,20 @@
     <RadioButton
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/BaarPhilos"
-        android:text="Baar Philos"
+        android:id="@+id/ChickenScratch"
+        android:text="Chicken Scratch"
         android:textSize="20sp"
         android:onClick="onRadioClick"
-        android:tag="baar"/>
+        android:tag="chickenscratch"/>
+
+    <RadioButton
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/ComicBook"
+        android:text="Comic Book"
+        android:textSize="20sp"
+        android:onClick="onRadioClick"
+        android:tag="comicbook"/>
 
     <RadioButton
         android:layout_width="fill_parent"
@@ -31,4 +40,78 @@
         android:textSize="20sp"
         android:onClick="onRadioClick"
         android:tag="delusion"/>
+
+    <RadioButton
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/Eroded"
+        android:text="Retro Erosion"
+        android:textSize="20sp"
+        android:onClick="onRadioClick"
+        android:tag="eroded"/>
+
+    <RadioButton
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/Earthquake"
+        android:text="Earthquake"
+        android:textSize="20sp"
+        android:onClick="onRadioClick"
+        android:tag="earthquake"/>
+
+    <RadioButton
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/GhettoMarquee"
+        android:text="Ghetto Marquee"
+        android:textSize="20sp"
+        android:onClick="onRadioClick"
+        android:tag="ghetto"/>
+
+    <RadioButton
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/HemiHead426"
+        android:text="HemiHead426"
+        android:textSize="20sp"
+        android:onClick="onRadioClick"
+        android:tag="hemihead426"/>
+
+    <RadioButton
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/Jerrybuilt"
+        android:text="Jerrybuilt"
+        android:textSize="20sp"
+        android:onClick="onRadioClick"
+        android:tag="jerrybuilt"/>
+
+    <RadioButton
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/LetsGoDigital"
+        android:text="Lets Go Digital"
+        android:textSize="20sp"
+        android:onClick="onRadioClick"
+        android:tag="letsgodigital"/>
+
+    <RadioButton
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/RuggedRide"
+        android:text="Rugged Ride"
+        android:textSize="20sp"
+        android:onClick="onRadioClick"
+        android:tag="rugged"/>
+
+    <RadioButton
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/See"
+        android:text="See"
+        android:textSize="20sp"
+        android:onClick="onRadioClick"
+        android:tag="see"/>
+
+
 </RadioGroup>

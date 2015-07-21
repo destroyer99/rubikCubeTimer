@@ -74,18 +74,16 @@ public class MainActivity extends Activity {
         if (getActionBar() != null) getActionBar().hide();
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
-
-        stateMachine = new UIStateMachine(this, displayMetrics.widthPixels, displayMetrics.ydpi, findViewById(R.id.bkgMain), findViewById(R.id.bkgGlow),
-                findViewById(R.id.startResetBtn), findViewById(R.id.cube), findViewById(R.id.dottedLine), findViewById(R.id.statsTxt), findViewById(R.id.timerTxt));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
         gyroThreshold = Float.valueOf(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("gyroThreshold", "18")) / 1000;
+        stateMachine = new UIStateMachine(this, displayMetrics.widthPixels, displayMetrics.ydpi, findViewById(R.id.bkgMain), findViewById(R.id.bkgGlow),
+                findViewById(R.id.startResetBtn), findViewById(R.id.cube), findViewById(R.id.dottedLine), findViewById(R.id.statsTxt), findViewById(R.id.timerTxt));
         stateMachine.resetState();
     }
 

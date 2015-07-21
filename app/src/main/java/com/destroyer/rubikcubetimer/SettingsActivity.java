@@ -61,8 +61,17 @@ public class SettingsActivity extends PreferenceActivity {
             public boolean onPreferenceClick(Preference preference) {
                 final View convertView = LayoutInflater.from(context).inflate(R.layout.font_layout, null);
                 ((TextView)convertView.findViewById(R.id.AtomicClockRadio)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
-                ((TextView)convertView.findViewById(R.id.BaarPhilos)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/baarpbi_.otf"));
-                ((TextView)convertView.findViewById(R.id.Delusion)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/DELUSION.otf"));
+                ((TextView)convertView.findViewById(R.id.ChickenScratch)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ChickenScratch.otf"));
+                ((TextView)convertView.findViewById(R.id.ComicBook)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ComicBook.otf"));
+                ((TextView)convertView.findViewById(R.id.Delusion)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/Delusion.otf"));
+                ((TextView)convertView.findViewById(R.id.Eroded)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/RetroErosion.otf"));
+                ((TextView)convertView.findViewById(R.id.Earthquake)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/Erthqake.otf"));
+                ((TextView)convertView.findViewById(R.id.GhettoMarquee)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ghettomarquee.otf"));
+                ((TextView)convertView.findViewById(R.id.HemiHead426)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
+                ((TextView)convertView.findViewById(R.id.Jerrybuilt)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/Jerrybuilt.otf"));
+                ((TextView)convertView.findViewById(R.id.LetsGoDigital)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/LetsgoDigital.otf"));
+                ((TextView)convertView.findViewById(R.id.RuggedRide)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/RuggedRide.otf"));
+                ((TextView)convertView.findViewById(R.id.See)).setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/See.otf"));
 
                 final RadioGroup fontGroup = (RadioGroup) convertView.findViewById(R.id.fontsGroup);
                 fontGroup.check(getResources().getIdentifier(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("fontID", "AtomicClockRadio"), "id", context.getPackageName()));
