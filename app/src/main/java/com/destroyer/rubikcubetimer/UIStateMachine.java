@@ -55,6 +55,8 @@ public class UIStateMachine {
 
     private Animation animationFadeOut, animationFadeIn, animationBlink, animationFadeOutComplete, animationFadeInComplete;
 
+    private Handler handler = new Handler();
+
     private final Runnable timer = new Runnable() {
         @Override
         public void run() {
@@ -63,6 +65,32 @@ public class UIStateMachine {
                 timerTxt.setText(formatString(millis));
                 if (runTimer) new Handler().postDelayed(this, timerPrecision);
             }
+        }
+    };
+
+    private final Runnable saveDialog = new Runnable() {
+        @Override
+        public void run() {
+            new AlertDialog.Builder(context)
+                    .setTitle("Save Score")
+                    .setMessage("Save score to Database?\t\t" + formatString(millis))
+                    .setCancelable(true)
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            nextState();
+                            dialog.cancel();
+                        }
+                    })
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            DBAdapter db = new DBAdapter(context);
+                            db.open();
+                            db.addTime(System.currentTimeMillis(), millis);
+                            db.close();
+                            nextState();
+                            dialog.dismiss();
+                        }
+                    });
         }
     };
 
@@ -141,6 +169,8 @@ public class UIStateMachine {
     public void haltProcess() {
         cdtWaiting.cancel();
         cdtHolding.cancel();
+        runTimer = false;
+        handler.removeCallbacks(saveDialog);
     }
 
     /*
@@ -155,7 +185,6 @@ public class UIStateMachine {
      */
     public void resetState() {
         haltProcess();
-        runTimer = false;
         timerTxt.clearAnimation();
         timerPrecision = Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("timerPrecision", "21"));
         vibrate = context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("vibrate", true);
@@ -309,31 +338,7 @@ public class UIStateMachine {
                 btn.refreshDrawableState();
                 bkgGlow.setStateStopping();
                 bkgGlow.refreshDrawableState();
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        new AlertDialog.Builder(context)
-                                .setTitle("Save Score")
-                                .setMessage("Save score to Database?\t\t" + formatString(millis))
-                                .setCancelable(true)
-                                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                        nextState();
-                                        dialog.cancel();
-                                    }
-                                })
-                                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                        DBAdapter db = new DBAdapter(context);
-                                        db.open();
-                                        db.addTime(System.currentTimeMillis(), millis);
-                                        db.close();
-                                        nextState();
-                                        dialog.dismiss();
-                                    }
-                                }).show();
-                    }
-                }, STOPPING_TIMEOUT);
+                handler.postDelayed(saveDialog, STOPPING_TIMEOUT);
                 break;
 
             default:
