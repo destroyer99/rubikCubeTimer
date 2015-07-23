@@ -59,5 +59,13 @@
             android:title="Change Timer Font"
             android:key="timerFont"
             android:summary="Change the font of the main Timer" />
+
+        <SwitchPreference
+            android:title="First Run Splash"
+            android:key="firstRun"
+            android:defaultValue="true"
+            android:summary="Show splash screen on first run of app"
+            android:summaryOn="On"
+            android:summaryOff="Off" />
     </PreferenceCategory>
 </PreferenceScreen>

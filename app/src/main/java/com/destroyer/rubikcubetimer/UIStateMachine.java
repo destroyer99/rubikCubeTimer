@@ -7,14 +7,10 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.LinearGradient;
-import android.graphics.Shader;
 import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Vibrator;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -72,17 +68,41 @@ public class UIStateMachine {
         }
     };
 
-    private Runnable saveDialog;
+    private Runnable saveDialog = new Runnable() {
+        @Override
+        public void run() {
+            new AlertDialog.Builder(context)
+                    .setTitle("Save Score")
+                    .setMessage("Save score to Database?\t\t" + formatString(millis))
+                    .setCancelable(true)
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            nextState();
+                            dialog.cancel();
+                        }
+                    })
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            DBAdapter db = new DBAdapter(context);
+                            db.open();
+                            db.addTime(System.currentTimeMillis(), millis);
+                            db.close();
+                            nextState();
+                            dialog.dismiss();
+                        }
+                    }).show();
+        }
+    };
 
     public UIStateMachine(Context ctx, float displayWidth, float displayHeight, View... views) {
         this.context = ctx;
         this.displayHeight = displayHeight;
-        this.bkgGlow = (CustomImageView)views[1];
-        this.btn = (CustomImageButton)views[2];
-        this.cube = (ImageView)views[3];
-        this.dotLine = (ImageView)views[4];
-        this.statsTxt = (TextView)views[5];
-        this.timerTxt = (TextView)views[6];
+        this.bkgGlow = (CustomImageView)views[0];
+        this.btn = (CustomImageButton)views[1];
+        this.cube = (ImageView)views[2];
+        this.dotLine = (ImageView)views[3];
+        this.statsTxt = (TextView)views[4];
+        this.timerTxt = (TextView)views[5];
 
         animationFadeIn = AnimationUtils.loadAnimation(context, R.anim.fadein);
         animationFadeOut = AnimationUtils.loadAnimation(context, R.anim.fadeout);
@@ -127,33 +147,6 @@ public class UIStateMachine {
             }
         };
 
-        saveDialog = new Runnable() {
-            @Override
-            public void run() {
-                new AlertDialog.Builder(context)
-                        .setTitle("Save Score")
-                        .setMessage("Save score to Database?\t\t" + formatString(millis))
-                        .setCancelable(true)
-                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                nextState();
-                                dialog.cancel();
-                            }
-                        })
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                DBAdapter db = new DBAdapter(context);
-                                db.open();
-                                db.addTime(System.currentTimeMillis(), millis);
-                                db.close();
-                                nextState();
-                                dialog.dismiss();
-                            }
-                        }).show();
-            }
-        };
-
-        views[0].setBackground(new BitmapDrawable(context.getResources(), getScaledBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.bkg_main), displayWidth)));
         cube.setImageBitmap(getScaledBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.cube), displayWidth / 2));
 
         stateList = new ArrayList<>();
@@ -276,7 +269,7 @@ public class UIStateMachine {
                     timerTxt.setText("");
                 }
 
-                float height = (float)(displayHeight / .75);
+                float height = (float)(displayHeight / 0.75);
                 dotLine.setY(height);
                 dotLine.setVisibility(View.VISIBLE);
 
@@ -443,7 +436,7 @@ public class UIStateMachine {
         Cursor cursor;
         if ((cursor = db.getAllTimes()) != null && cursor.moveToFirst()) {
             do {
-                val = cursor.getInt(1);
+                val = cursor.getInt(2);
                 if (cursor.getPosition() < 5) avg5 += val;
                 if (cursor.getPosition() < 25) avg25 += val;
                 avgAll += val;
@@ -459,7 +452,7 @@ public class UIStateMachine {
                     (cursor.getCount() > 25 ? "\nLast 25 Average:  " + formatString(avg25) : "") +
                     (cursor.getCount() > 5 ? "\nLast 5 Average:  " + formatString(avg5) : "") +
                     "\nFastest Score:  " + formatString(low) +
-                    "\nLast Score:  " + (cursor.moveToFirst() ? formatString(cursor.getInt(1)) : formatString(0)));
+                    "\nLast Score:  " + (cursor.moveToFirst() ? formatString(cursor.getInt(2)) : formatString(0)));
         } else statsTxt.setText("");
         db.close();
     }

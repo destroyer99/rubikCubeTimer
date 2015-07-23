@@ -7,11 +7,11 @@
 
     <application
         android:allowBackup="true"
+        android:configChanges="orientation"
         android:icon="@drawable/logo"
         android:label="@string/app_name"
-        android:configChanges="orientation"
-        android:screenOrientation="landscape"
         android:largeHeap="true"
+        android:screenOrientation="landscape"
         android:theme="@style/AppTheme" >
         <activity
             android:name=".MainActivity"
@@ -25,6 +25,14 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.destroyer.rubikcubetimer.MainActivity" />
+        </activity>
+        <activity
+            android:name=".DBViewerActivity"
+            android:label="@string/title_activity_dbviewer"
             android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

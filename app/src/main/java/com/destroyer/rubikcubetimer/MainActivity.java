@@ -1,7 +1,9 @@
 package com.destroyer.rubikcubetimer;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -15,6 +17,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 /*TODO:
     stats viewer/editor (database)
@@ -79,10 +83,26 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        if (getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("firstRun", true)) {
+            ImageView img = new ImageView(this);
+            img.setImageResource(R.drawable.cube);
+            new AlertDialog.Builder(this)
+                    .setTitle("First Run")
+                    .setView(img)
+                    .setCancelable(false)
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+//                            getSharedPreferences("appPreferences", Context.MODE_PRIVATE).edit().putBoolean("firstRun", false).apply();
+                            dialog.dismiss();
+                        }
+                    }).show();
+        }
+
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
         gyroThreshold = Float.valueOf(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("gyroThreshold", "18")) / 1000;
-        stateMachine = new UIStateMachine(this, displayMetrics.widthPixels, displayMetrics.ydpi, findViewById(R.id.bkgMain), findViewById(R.id.bkgGlow),
+        stateMachine = new UIStateMachine(this, displayMetrics.widthPixels, displayMetrics.ydpi, findViewById(R.id.bkgGlow),
                 findViewById(R.id.startResetBtn), findViewById(R.id.cube), findViewById(R.id.dottedLine), findViewById(R.id.statsTxt), findViewById(R.id.timerTxt));
         stateMachine.resetState();
     }
@@ -122,12 +142,27 @@ public class MainActivity extends Activity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
+
+            case R.id.action_about:
+                Toast.makeText(this, "About", Toast.LENGTH_LONG).show();
+                break;
+
+            case R.id.action_help:
+                Toast.makeText(this, "Help", Toast.LENGTH_LONG).show();
+                break;
+
+            case R.id.action_db:
+                startActivity(new Intent(this, DBViewerActivity.class));
+//                Toast.makeText(this, "DB Viewer/Editor", Toast.LENGTH_LONG).show();
+                break;
+
+            default:
+                break;
         }
 
         return super.onOptionsItemSelected(item);

@@ -12,7 +12,7 @@ public class DBAdapter {
 
     static final String TAG = "DBAdapter";
     static final String KEY_ID = "id";//0
-    static final String KEY_DATE_TIME = "dateTime";//1
+    static final String KEY_DATE = "date";//1
     static final String KEY_SOLVE_TIME = "solveTime";//2
 
     static final String DATABASE_NAME = "rubik";
@@ -21,7 +21,7 @@ public class DBAdapter {
 
     static final String TABLE_RUBIK_CREATE = "CREATE TABLE rubik_times (" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-            "dateTime INTEGER, " +
+            "date INTEGER, " +
             "solveTime INTEGER" +
             ");";
 
@@ -74,9 +74,9 @@ public class DBAdapter {
 
     /////////////////  Create  /////////////////////
 
-    public boolean addTime(long dateTime, long solveTime) {
+    public boolean addTime(long date, long solveTime) {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(KEY_DATE_TIME, dateTime);
+        contentValues.put(KEY_DATE, date);
         contentValues.put(KEY_SOLVE_TIME, solveTime);
 
         return db.insert(TABLE_NAME, null, contentValues) > 0;
@@ -89,7 +89,11 @@ public class DBAdapter {
     }
 
     public Cursor getAllTimes() {
-        return db.query(true, TABLE_NAME, new String[] {KEY_DATE_TIME, KEY_SOLVE_TIME}, null, null, null, null, KEY_DATE_TIME + " DESC" , null);
+        return db.query(true, TABLE_NAME, new String[] {KEY_ID, KEY_DATE, KEY_SOLVE_TIME}, null, null, null, null, KEY_DATE + " DESC" , null);
+    }
+
+    public Cursor getAllTimes(String sort) {
+        return db.query(true, TABLE_NAME, new String[] {KEY_ID, KEY_DATE, KEY_SOLVE_TIME}, null, null, null, null, KEY_DATE + " " + sort , null);
     }
 
     /////////////////  Update  /////////////////////
