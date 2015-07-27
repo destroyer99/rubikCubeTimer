@@ -41,6 +41,7 @@ public class UIStateMachine {
     private ImageView cube;
     private TextView statsTxt;
     private TextView timerTxt;
+    private TextView scrambleTxt;
 
     private State currentState;
     private List<State> stateList;
@@ -103,6 +104,7 @@ public class UIStateMachine {
         this.dotLine = (ImageView)views[3];
         this.statsTxt = (TextView)views[4];
         this.timerTxt = (TextView)views[5];
+        this.scrambleTxt = (TextView)views[6];
 
         animationFadeIn = AnimationUtils.loadAnimation(context, R.anim.fadein);
         animationFadeOut = AnimationUtils.loadAnimation(context, R.anim.fadeout);
@@ -146,8 +148,6 @@ public class UIStateMachine {
                 nextState();
             }
         };
-
-        cube.setImageBitmap(getScaledBitmap(BitmapFactory.decodeResource(context.getResources(), R.drawable.cube), displayWidth / 2));
 
         stateList = new ArrayList<>();
 
@@ -242,9 +242,15 @@ public class UIStateMachine {
                 bkgGlow.setStateStart();
                 btn.refreshDrawableState();
                 bkgGlow.refreshDrawableState();
+
+                scrambleTxt.setText(Scrambler.generateScramble());
+                scrambleTxt.setVisibility(View.VISIBLE);
+
+
                 break;
 
             case WAITING:
+                scrambleTxt.setVisibility(View.INVISIBLE);
                 cdtHolding.cancel();
                 cdtWaiting.cancel();
                 timerTxt.setText("");
