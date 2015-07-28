@@ -17,8 +17,8 @@ import android.widget.Toast;
 public class DBViewerActivity extends Activity {
 
     private ListView listView;
-
     private DBAdapter db;
+    private String[] scramble;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +33,7 @@ public class DBViewerActivity extends Activity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(context, "Item" + id + "Clicked", Toast.LENGTH_LONG).show();
+                Toast.makeText(context, scramble[position], Toast.LENGTH_LONG).show();
             }
         });
 
@@ -74,9 +74,11 @@ public class DBViewerActivity extends Activity {
 
         if (cursor != null && cursor.getCount() > 0) {
             TimeItem[] timeItems = new TimeItem[cursor.getCount()];
+            scramble = new String[cursor.getCount()];
             if (cursor.moveToFirst()) {
                 do {
                     timeItems[cursor.getPosition()] = new TimeItem(cursor.getInt(0), cursor.getLong(1), cursor.getLong(2));
+                    scramble[cursor.getPosition()]=cursor.getString(3);
                 } while (cursor.moveToNext());
             } else Log.wtf("TIME_LIST", "EMPTY");
             listView.setAdapter(new TimeListAdapter(this, R.layout.time_layout, timeItems));

@@ -14,6 +14,7 @@ public class DBAdapter {
     static final String KEY_ID = "id";//0
     static final String KEY_DATE = "date";//1
     static final String KEY_SOLVE_TIME = "solveTime";//2
+    static final String KEY_SCRAMBLE = "scramble";//3
 
     static final String DATABASE_NAME = "rubik";
     static final String TABLE_NAME = "rubik_times";
@@ -22,7 +23,8 @@ public class DBAdapter {
     static final String TABLE_RUBIK_CREATE = "CREATE TABLE rubik_times (" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
             "date INTEGER, " +
-            "solveTime INTEGER" +
+            "solveTime INTEGER, " +
+            "scramble TEXT" +
             ");";
 
     final Context context;
@@ -74,10 +76,11 @@ public class DBAdapter {
 
     /////////////////  Create  /////////////////////
 
-    public boolean addTime(long date, long solveTime) {
+    public boolean addTime(long date, long solveTime, String scramble) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(KEY_DATE, date);
         contentValues.put(KEY_SOLVE_TIME, solveTime);
+        contentValues.put(KEY_SCRAMBLE, scramble);
 
         return db.insert(TABLE_NAME, null, contentValues) > 0;
     }
@@ -88,12 +91,16 @@ public class DBAdapter {
         return null;
     }
 
+    public Cursor getAllByMonth(String selection) {
+        return db.query(true, TABLE_NAME, new String[] {KEY_ID, KEY_DATE, KEY_SOLVE_TIME, KEY_SCRAMBLE}, KEY_DATE + ">" + selection, null, null, null, null, null);
+    }
+
     public Cursor getAllTimes() {
-        return db.query(true, TABLE_NAME, new String[] {KEY_ID, KEY_DATE, KEY_SOLVE_TIME}, null, null, null, null, KEY_DATE + " DESC" , null);
+        return db.query(true, TABLE_NAME, new String[] {KEY_ID, KEY_DATE, KEY_SOLVE_TIME, KEY_SCRAMBLE}, null, null, null, null, KEY_DATE + " DESC" , null);
     }
 
     public Cursor getAllTimes(String sort) {
-        return db.query(true, TABLE_NAME, new String[] {KEY_ID, KEY_DATE, KEY_SOLVE_TIME}, null, null, null, null, KEY_DATE + " " + sort , null);
+        return db.query(true, TABLE_NAME, new String[] {KEY_ID, KEY_DATE, KEY_SOLVE_TIME, KEY_SCRAMBLE}, null, null, null, null, KEY_DATE + " " + sort , null);
     }
 
     /////////////////  Update  /////////////////////

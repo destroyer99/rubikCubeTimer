@@ -103,7 +103,10 @@ public class MainActivity extends Activity {
         getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
         gyroThreshold = Float.valueOf(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("gyroThreshold", "18")) / 1000;
         stateMachine = new UIStateMachine(this, displayMetrics.widthPixels, displayMetrics.ydpi, findViewById(R.id.bkgGlow),
-                findViewById(R.id.startResetBtn), findViewById(R.id.cube), findViewById(R.id.dottedLine), findViewById(R.id.statsTxt), findViewById(R.id.timerTxt), findViewById(R.id.scrambleTxt));
+                findViewById(R.id.startResetBtn), findViewById(R.id.cube), findViewById(R.id.dottedLine), findViewById(R.id.statsTxt),
+                findViewById(R.id.timerTxt), findViewById(R.id.bestTimeTxt), findViewById(R.id.worstTimeText), findViewById(R.id.last5Txt),
+                findViewById(R.id.last12Txt),findViewById(R.id.last25Txt), findViewById(R.id.last50Txt), findViewById(R.id.monthTxt),
+                findViewById(R.id.lastTimeTxt), findViewById(R.id.scrambleTxt));
         stateMachine.resetState();
     }
 

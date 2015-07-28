@@ -7,6 +7,8 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -29,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 public class UIStateMachine {
 
     protected static int STOPPING_TIMEOUT = 500;
+    protected static long MONTH_IN_MILLISECONDS = 2592000000L;
 
     protected enum STATES {START, WAITING, HOLDING, READY, RUNNING, STOPPING}
 
@@ -41,6 +44,14 @@ public class UIStateMachine {
     private ImageView cube;
     private TextView statsTxt;
     private TextView timerTxt;
+    private TextView bestTxt;
+    private TextView worstTxt;
+    private TextView last5Txt;
+    private TextView last12Txt;
+    private TextView last25Txt;
+    private TextView last50Txt;
+    private TextView monthTxt;
+    private TextView lastTimeTxt;
     private TextView scrambleTxt;
 
     private State currentState;
@@ -55,6 +66,25 @@ public class UIStateMachine {
     private Vibrator vibrator;
 
     private Animation animationFadeOut, animationFadeIn, animationBlink, animationFadeOutComplete, animationFadeInComplete;
+
+    Shader greenTextShader=new LinearGradient(0, 0, 0, 35,
+            new int[]{Color.GREEN,Color.rgb(0, 58, 10)},
+            new float[]{0, 1}, Shader.TileMode.CLAMP);
+    Shader redTextShader=new LinearGradient(0, 0, 0, 35,
+            new int[]{Color.RED,Color.rgb(40, 0, 0)},
+            new float[]{0, 1}, Shader.TileMode.CLAMP);
+    Shader blueTextShader=new LinearGradient(0, 0, 0, 35,
+            new int[]{Color.rgb(0, 115, 255),Color.rgb(0, 21, 70)},
+            new float[]{0, 1}, Shader.TileMode.CLAMP);
+    Shader orangeTextShader=new LinearGradient(0, 0, 0, 35,
+            new int[]{Color.rgb(255, 128, 0),Color.rgb(54, 40, 0)},
+            new float[]{0, 1}, Shader.TileMode.CLAMP);
+    Shader whiteTextShader=new LinearGradient(0, 0, 0, 35,
+            new int[]{Color.WHITE,Color.rgb(33, 33, 33)},
+            new float[]{0, 1}, Shader.TileMode.CLAMP);
+    Shader yellowTextShader=new LinearGradient(0, 0, 0, 35,
+            new int[]{Color.YELLOW,Color.rgb(70, 63, 0)},
+            new float[]{0, 1}, Shader.TileMode.CLAMP);
 
     private Handler handler = new Handler();
 
@@ -86,7 +116,7 @@ public class UIStateMachine {
                         public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                             DBAdapter db = new DBAdapter(context);
                             db.open();
-                            db.addTime(System.currentTimeMillis(), millis);
+                            db.addTime(System.currentTimeMillis(), millis, scrambleTxt.getText().toString());
                             db.close();
                             nextState();
                             dialog.dismiss();
@@ -104,7 +134,15 @@ public class UIStateMachine {
         this.dotLine = (ImageView)views[3];
         this.statsTxt = (TextView)views[4];
         this.timerTxt = (TextView)views[5];
-        this.scrambleTxt = (TextView)views[6];
+        this.bestTxt = (TextView)views[6];
+        this.worstTxt = (TextView)views[7];
+        this.last5Txt = (TextView)views[8];
+        this.last12Txt = (TextView)views[9];
+        this.last25Txt = (TextView)views[10];
+        this.last50Txt = (TextView)views[11];
+        this.monthTxt = (TextView)views[12];
+        this.lastTimeTxt = (TextView)views[13];
+        this.scrambleTxt = (TextView)views[14];
 
         animationFadeIn = AnimationUtils.loadAnimation(context, R.anim.fadein);
         animationFadeOut = AnimationUtils.loadAnimation(context, R.anim.fadeout);
@@ -115,6 +153,24 @@ public class UIStateMachine {
         animationFadeInComplete.setFillAfter(true);
         animationFadeOutComplete.setFillAfter(true);
         animationBlink = AnimationUtils.loadAnimation(context, R.anim.blink);
+
+        bestTxt.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
+        worstTxt.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
+        last5Txt.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
+        last12Txt.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
+        last25Txt.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
+        last50Txt.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
+        monthTxt.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
+        lastTimeTxt.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
+
+        bestTxt.getPaint().setShader(greenTextShader);
+        worstTxt.getPaint().setShader(redTextShader);
+        last5Txt.getPaint().setShader(whiteTextShader);
+        last12Txt.getPaint().setShader(whiteTextShader);
+        last25Txt.getPaint().setShader(whiteTextShader);
+        last50Txt.getPaint().setShader(whiteTextShader);
+        monthTxt.getPaint().setShader(yellowTextShader);
+        lastTimeTxt.getPaint().setShader(blueTextShader);
 
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 
@@ -250,6 +306,15 @@ public class UIStateMachine {
                 break;
 
             case WAITING:
+                bestTxt.setText("");
+                worstTxt.setText("");
+                last5Txt.setText("");
+                last12Txt.setText("");
+                last25Txt.setText("");
+                last50Txt.setText("");
+                monthTxt.setText("");
+                lastTimeTxt.setText("");
+
                 scrambleTxt.setVisibility(View.INVISIBLE);
                 cdtHolding.cancel();
                 cdtWaiting.cancel();
@@ -292,6 +357,7 @@ public class UIStateMachine {
             case HOLDING:
                 cdtWaiting.cancel();
                 statsTxt.clearAnimation();
+
 
                 timerTxt.setText("");
                 timerTxt.clearAnimation();
@@ -436,7 +502,7 @@ public class UIStateMachine {
     }
 
     private void updateStats() {
-        int avgAll = 0, avg5 = 0, avg25 = 0, low = Integer.MAX_VALUE, high = Integer.MIN_VALUE, val;
+        int avg5 = 0, avg12 = 0, avg25 = 0, avg50 = 0, avgMonth = 0, best = Integer.MAX_VALUE, worst = Integer.MIN_VALUE, val;
         DBAdapter db = new DBAdapter(context);
         db.open();
         Cursor cursor;
@@ -444,22 +510,45 @@ public class UIStateMachine {
             do {
                 val = cursor.getInt(2);
                 if (cursor.getPosition() < 5) avg5 += val;
+                if (cursor.getPosition() < 12) avg12 += val;
                 if (cursor.getPosition() < 25) avg25 += val;
-                avgAll += val;
-                if (val > high) high = val;
-                if (val < low) low = val;
+                if (cursor.getPosition() < 50) avg25 += val;
+
+                if (val > worst) worst = val;
+                if (val < best) best = val;
             } while (cursor.moveToNext());
 
-            avgAll = avgAll / cursor.getCount();
             avg5 = avg5 / 5;
+            avg12 = avg12 / 12;
             avg25 = avg25 / 25;
+            avg50 = avg50 / 50;
 
-            statsTxt.setText("Average Score:  " + formatString(avgAll) +
-                    (cursor.getCount() > 25 ? "\nLast 25 Average:  " + formatString(avg25) : "") +
-                    (cursor.getCount() > 5 ? "\nLast 5 Average:  " + formatString(avg5) : "") +
-                    "\nFastest Score:  " + formatString(low) +
-                    "\nLast Score:  " + (cursor.moveToFirst() ? formatString(cursor.getInt(2)) : formatString(0)));
-        } else statsTxt.setText("");
+            bestTxt.setText("Best: " + (cursor.getCount() > 0 ? formatString(best) : "--:--"));
+            worstTxt.setText("Worst: " + (cursor.getCount() > 0 ? formatString(worst) : "--:--"));
+            last5Txt.setText("Avg Last 5: " + (cursor.getCount() > 5 ? formatString(avg5) : "--:--"));
+            last12Txt.setText("Avg Last 12: " + (cursor.getCount() > 12 ? formatString(avg12) : "--:--"));
+            last25Txt.setText("Avg Last 25: " + (cursor.getCount() > 25 ? formatString(avg25) : "--:--"));
+            last50Txt.setText("Avg Last 50: " + (cursor.getCount() > 50 ? formatString(avg50) : "--:--"));
+            lastTimeTxt.setText("Last Time: " + (cursor.moveToFirst() ? formatString(cursor.getInt(2)) : "--:--"));
+
+            if ((cursor = db.getAllByMonth(String.valueOf(System.currentTimeMillis()-MONTH_IN_MILLISECONDS))) != null && cursor.moveToFirst()){
+                do {
+                    avgMonth += cursor.getInt(2);
+                } while (cursor.moveToNext());
+
+                avgMonth = avgMonth/cursor.getCount();
+                monthTxt.setText("Avg Month: " + (cursor.getCount() > 0 ? formatString(avgMonth) : "--:--"));
+            }
+        } else {
+            bestTxt.setText("");
+            worstTxt.setText("");
+            last5Txt.setText("");
+            last12Txt.setText("");
+            last25Txt.setText("");
+            last50Txt.setText("");
+            lastTimeTxt.setText("");
+            statsTxt.setText("");
+        }
         db.close();
     }
 
