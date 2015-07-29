@@ -13,6 +13,10 @@ import android.graphics.Typeface;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -299,9 +303,7 @@ public class UIStateMachine {
                 btn.refreshDrawableState();
                 bkgGlow.refreshDrawableState();
 
-                scrambleTxt.setText(Scrambler.generateScramble());
-                scrambleTxt.setVisibility(View.VISIBLE);
-
+                scrambleCubeText();
 
                 break;
 
@@ -547,9 +549,28 @@ public class UIStateMachine {
             last25Txt.setText("");
             last50Txt.setText("");
             lastTimeTxt.setText("");
+            monthTxt.setText("");
             statsTxt.setText("");
         }
         db.close();
+    }
+
+    private void scrambleCubeText() {
+        SpannableStringBuilder finalScrambleTxt = new SpannableStringBuilder("");
+        String[] scrambles = Scrambler.generateScramble().split(" ");
+        boolean color = false;
+        for (String txt : scrambles) {
+            if (color) {
+                SpannableString ss = new SpannableString(txt);
+                ss.setSpan(new ForegroundColorSpan(Color.CYAN), 0, txt.length(), 0);
+                finalScrambleTxt.append(ss).append("\u00A0\u00A0");
+            } else {
+                finalScrambleTxt.append(txt).append("\u00A0\u00A0");
+            }
+            color = !color;
+        }
+        scrambleTxt.setText(finalScrambleTxt);
+        scrambleTxt.setVisibility(View.VISIBLE);
     }
 
     private String formatString(long millis) {
