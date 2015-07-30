@@ -147,26 +147,27 @@ public class MainActivity extends Activity {
     }
 
     private void isTrialVersion() {
-        Parse.enableLocalDatastore(this);
-        Parse.initialize(this, "tJUidAATJRIBP0yYI2r6eKReJQ5cXCu4mlnokFiz", "Uh5t6LBW9uxyCVkLaIToIGjusFJQNIphKKSQX4KJ");
+        Log.wtf("DEVICE_ID", ((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId());
+
+        Parse.initialize(this, "UMpeJeqOQFoiNMxTX0SozYgs2hobmX2YY4Mh7tuv", "7bWn5dI3JiWnKvrdE4Xd5sCOlLYY5UO9eO1WZA7x");
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("trialVersion");
         query.findInBackground(new FindCallback<ParseObject>() {
             @Override
             public void done(List<ParseObject> list, ParseException e) {
                     if (e == null) {
-                        if (list.isEmpty()) { // device ID not in DB
+                        if (list.isEmpty()) { // device ID not in DB (DB empty)
                             // add device to DB
                             ParseObject trialVersion = new ParseObject("trialVersion");
-                            trialVersion.setObjectId(((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId());
+                            trialVersion.put("deviceId", ((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId());
                             trialVersion.put("millis", System.currentTimeMillis());
                             trialVersion.saveInBackground();
-                            Log.wtf("PARSE", "added device to cloud DB");
+                            Log.wtf("PARSE", "empty DB, added device to cloud DB");
                         } else{ // found device ID
                             // find matching device ID
                             List<Integer> foundID = new ArrayList<>();
                             for (ParseObject obj : list) {
-                                if (obj.getObjectId().equals(((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId())) {
+                                if (obj.getString("deviceId").equals(((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId())) {
                                     foundID.add(list.indexOf(obj));
                                 }
                             }
@@ -174,7 +175,7 @@ public class MainActivity extends Activity {
                             if (foundID.isEmpty()) { // device ID not in DB
                                 // add device to DB
                                 ParseObject trialVersion = new ParseObject("trialVersion");
-                                trialVersion.setObjectId(((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId());
+                                trialVersion.put("deviceId", ((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId());
                                 trialVersion.put("millis", System.currentTimeMillis());
                                 trialVersion.saveInBackground();
                                 Log.wtf("PARSE", "added device to cloud DB");
@@ -185,6 +186,7 @@ public class MainActivity extends Activity {
                                 return;
                             }
                             appCreatedDate = list.get(foundID.get(0)).getLong("millis");
+                            Log.wtf("PARSE", "found device id: " + list.get(foundID.get(0)).getString("deviceId"));
                         }
                     } else {
                         Log.wtf("PARSE_EXCEPTION", e.getMessage());
@@ -192,6 +194,7 @@ public class MainActivity extends Activity {
             }
         });
         isTrialVer = System.currentTimeMillis() - appCreatedDate > WEEK_IN_MILLISECONDS;
+        Log.wtf("TRIAL", String.valueOf(isTrialVer));
     }
 
     public void onButtonClick(View view) {
