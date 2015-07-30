@@ -148,6 +148,7 @@ public class MainActivity extends Activity {
 
     private void isTrialVersion() {
         Log.wtf("DEVICE_ID", ((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId());
+        final Context ctx = this;
 
         Parse.initialize(this, "UMpeJeqOQFoiNMxTX0SozYgs2hobmX2YY4Mh7tuv", "7bWn5dI3JiWnKvrdE4Xd5sCOlLYY5UO9eO1WZA7x");
 
@@ -187,14 +188,32 @@ public class MainActivity extends Activity {
                             }
                             appCreatedDate = list.get(foundID.get(0)).getLong("millis");
                             Log.wtf("PARSE", "found device id: " + list.get(foundID.get(0)).getString("deviceId"));
+
+                            Log.wtf("temp", String.valueOf(appCreatedDate));
+                            isTrialVer = System.currentTimeMillis() - appCreatedDate < WEEK_IN_MILLISECONDS;
+                            Log.wtf("TRIAL", String.valueOf(isTrialVer));
+
+                            if (isTrialVer) {
+                                Log.w("time1", String.valueOf(WEEK_IN_MILLISECONDS));
+                                Log.w("time2", String.valueOf((System.currentTimeMillis() - appCreatedDate)));
+                                long millis = (WEEK_IN_MILLISECONDS - (System.currentTimeMillis() - appCreatedDate));
+                                Log.w("timeMillis", String.valueOf(millis));
+                                new AlertDialog.Builder(ctx)
+                                        .setTitle("Trial Version")
+                                        .setMessage("You have " + (millis / (1000*60*60*24)) + " days left on your trial version.")
+                                        .setCancelable(false)
+                                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                                dialog.dismiss();
+                                            }
+                                        }).show();
+                            }
                         }
                     } else {
                         Log.wtf("PARSE_EXCEPTION", e.getMessage());
                     }
             }
         });
-        isTrialVer = System.currentTimeMillis() - appCreatedDate > WEEK_IN_MILLISECONDS;
-        Log.wtf("TRIAL", String.valueOf(isTrialVer));
     }
 
     public void onButtonClick(View view) {
