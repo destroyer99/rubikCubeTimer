@@ -12,16 +12,27 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Telephony;
+import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.parse.FindCallback;
+import com.parse.GetCallback;
+import com.parse.Parse;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /*TODO:
     stats viewer/editor (database)
@@ -29,12 +40,16 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
+    protected static long WEEK_IN_MILLISECONDS = 648000000L;
+
     private UIStateMachine stateMachine;
     private SensorManager mSensorManager;
 
     private float[] gyroLast = {0, 0, 0};
     private float gyroThreshold;
-    private boolean gyroSettled = false;
+    private boolean gyroSettled = false, isTrialVer = false;
+
+    private Long appCreatedDate;
 
     private final SensorEventListener mSensorListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent event) {
@@ -81,6 +96,8 @@ public class MainActivity extends Activity {
         if (getActionBar() != null) getActionBar().hide();
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+
+        isTrialVersion();
     }
 
     @Override
@@ -127,6 +144,54 @@ public class MainActivity extends Activity {
         mSensorManager.unregisterListener(mSensorListener);
         stateMachine.haltProcess();
         super.onPause();
+    }
+
+    private void isTrialVersion() {
+        Parse.enableLocalDatastore(this);
+        Parse.initialize(this, "tJUidAATJRIBP0yYI2r6eKReJQ5cXCu4mlnokFiz", "Uh5t6LBW9uxyCVkLaIToIGjusFJQNIphKKSQX4KJ");
+
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("trialVersion");
+        query.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> list, ParseException e) {
+                    if (e == null) {
+                        if (list.isEmpty()) { // device ID not in DB
+                            // add device to DB
+                            ParseObject trialVersion = new ParseObject("trialVersion");
+                            trialVersion.setObjectId(((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId());
+                            trialVersion.put("millis", System.currentTimeMillis());
+                            trialVersion.saveInBackground();
+                            Log.wtf("PARSE", "added device to cloud DB");
+                        } else{ // found device ID
+                            // find matching device ID
+                            List<Integer> foundID = new ArrayList<>();
+                            for (ParseObject obj : list) {
+                                if (obj.getObjectId().equals(((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId())) {
+                                    foundID.add(list.indexOf(obj));
+                                }
+                            }
+
+                            if (foundID.isEmpty()) { // device ID not in DB
+                                // add device to DB
+                                ParseObject trialVersion = new ParseObject("trialVersion");
+                                trialVersion.setObjectId(((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId());
+                                trialVersion.put("millis", System.currentTimeMillis());
+                                trialVersion.saveInBackground();
+                                Log.wtf("PARSE", "added device to cloud DB");
+                                return;
+                            }
+                            if (foundID.size() > 1) { // found multiple matching IDs (should not happen)
+                                Log.wtf("PARSE", "found " + foundID + " devices with mathcing ID");
+                                return;
+                            }
+                            appCreatedDate = list.get(foundID.get(0)).getLong("millis");
+                        }
+                    } else {
+                        Log.wtf("PARSE_EXCEPTION", e.getMessage());
+                    }
+            }
+        });
+        isTrialVer = System.currentTimeMillis() - appCreatedDate > WEEK_IN_MILLISECONDS;
     }
 
     public void onButtonClick(View view) {
