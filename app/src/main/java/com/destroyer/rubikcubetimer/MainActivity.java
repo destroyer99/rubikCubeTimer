@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -15,9 +16,11 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /*TODO:
@@ -85,11 +88,20 @@ public class MainActivity extends Activity {
         super.onResume();
 
         if (getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("firstRun", true)) {
-            ImageView img = new ImageView(this);
-            img.setImageResource(R.drawable.cube);
+            TextView howTo = new TextView(this);
+            howTo.setTextSize(16);
+            howTo.setTypeface(null, Typeface.NORMAL);
+            howTo.setPadding(10,10,10,10);
+            howTo.setText("Be sure device is on a hard surface for good detection!\n\n\n" +
+                            "1.\tPress 'Start' Button\n\n" +
+                            "2.\tPlace cube above dotted line when ready\n\n" +
+                            "3.\tWait for count down timer to ready\n\n" +
+                            "4.\tLift cube to begin timer\n\n" +
+                            "5.\tWhen solve is complete, 'slap' table with hands the end timer!"
+            );
             new AlertDialog.Builder(this)
                     .setTitle("First Run")
-                    .setView(img)
+                    .setView(howTo)
                     .setCancelable(false)
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
@@ -102,7 +114,7 @@ public class MainActivity extends Activity {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
         gyroThreshold = Float.valueOf(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("gyroThreshold", "18")) / 1000;
-        stateMachine = new UIStateMachine(this, displayMetrics.widthPixels, displayMetrics.ydpi, findViewById(R.id.bkgGlow),
+        stateMachine = new UIStateMachine(this, displayMetrics.ydpi, findViewById(R.id.bkgGlow),
                 findViewById(R.id.startResetBtn), findViewById(R.id.cube), findViewById(R.id.dottedLine), findViewById(R.id.statsTxt),
                 findViewById(R.id.timerTxt), findViewById(R.id.bestTimeTxt), findViewById(R.id.worstTimeText), findViewById(R.id.last5Txt),
                 findViewById(R.id.last12Txt),findViewById(R.id.last25Txt), findViewById(R.id.last50Txt), findViewById(R.id.monthTxt),

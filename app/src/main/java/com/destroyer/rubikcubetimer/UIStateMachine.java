@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
@@ -13,10 +12,10 @@ import android.graphics.Typeface;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Vibrator;
-import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -61,11 +60,11 @@ public class UIStateMachine {
     private State currentState;
     private List<State> stateList;
 
-    private boolean runTimer;
+    private boolean runBool;
     private long millis, val;
     private int timerPrecision;
 
-    private CountDownTimer cdtWaiting, cdtHolding;
+    private CountDownTimer cdtWaiting, cdtHolding, cdtSaving;
     private boolean vibrate;
     private Vibrator vibrator;
 
@@ -95,10 +94,10 @@ public class UIStateMachine {
     private final Runnable timer = new Runnable() {
         @Override
         public void run() {
-            if(runTimer) {
+            if(runBool) {
                 millis = System.currentTimeMillis()-val;
                 timerTxt.setText(formatString(millis));
-                if (runTimer) new Handler().postDelayed(this, timerPrecision);
+                if (runBool) new Handler().postDelayed(this, timerPrecision);
             }
         }
     };
@@ -106,12 +105,13 @@ public class UIStateMachine {
     private Runnable saveDialog = new Runnable() {
         @Override
         public void run() {
-            new AlertDialog.Builder(context)
+            final AlertDialog alertDialog = new AlertDialog.Builder(context)
                     .setTitle("Save Score")
                     .setMessage("Save score to Database?\t\t" + formatString(millis))
                     .setCancelable(true)
                     .setNegativeButton("No", new DialogInterface.OnClickListener() {
                         public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            cdtSaving.cancel();
                             nextState();
                             dialog.cancel();
                         }
@@ -125,11 +125,29 @@ public class UIStateMachine {
                             nextState();
                             dialog.dismiss();
                         }
-                    }).show();
+                    }).create();
+
+            val = 4; // time for cdt on auto save
+            cdtSaving = new CountDownTimer(val*1000, 100) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    if (millisUntilFinished < val*1000) {
+                        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setText("Yes (" + --val + ")");
+                    }
+                }
+
+                @Override
+                public void onFinish() {
+                    alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                }
+            };
+
+            alertDialog.show();
+            cdtSaving.start();
         }
     };
 
-    public UIStateMachine(Context ctx, float displayWidth, float displayHeight, View... views) {
+    public UIStateMachine(Context ctx, float displayHeight, View... views) {
         this.context = ctx;
         this.displayHeight = displayHeight;
         this.bkgGlow = (CustomImageView)views[0];
@@ -225,7 +243,7 @@ public class UIStateMachine {
     public void haltProcess() {
         cdtWaiting.cancel();
         cdtHolding.cancel();
-        runTimer = false;
+        runBool = false;
         if(handler!= null){
             handler.removeCallbacks(saveDialog);
         }
@@ -405,14 +423,14 @@ public class UIStateMachine {
                 bkgGlow.setStateRunning();
                 bkgGlow.refreshDrawableState();
 
-                runTimer = true;
+                runBool = true;
                 val = System.currentTimeMillis();
                 new Handler().post(timer);
 
                 break;
 
             case STOPPING:
-                runTimer = false;
+                runBool = false;
                 btn.setStateStopping();
                 btn.refreshDrawableState();
                 bkgGlow.setStateStopping();
