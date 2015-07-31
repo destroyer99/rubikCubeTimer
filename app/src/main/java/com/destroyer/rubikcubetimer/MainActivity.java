@@ -109,15 +109,18 @@ public class MainActivity extends Activity {
             howTo.setTextSize(16);
             howTo.setTypeface(null, Typeface.NORMAL);
             howTo.setPadding(10,10,10,10);
-            howTo.setText("Be sure device is on a hard surface for good detection!\n\n\n" +
-                            "1.\tPress 'Start' Button\n\n" +
-                            "2.\tPlace cube above dotted line when ready\n\n" +
-                            "3.\tWait for count down timer to ready\n\n" +
-                            "4.\tLift cube to begin timer\n\n" +
-                            "5.\tWhen solve is complete, 'slap' table with hands the end timer!"
+            howTo.setText("Be sure device is on a hard surface for good detection! (ex. counter top or desk)\n\n\n" +
+                            "1.\tAfter you've scrambled your cube, press the 'Start' button\n\n" +
+                            "2.\tAfter your inspection time is up, place the cube above the dotted line\n\n" +
+                            "3.\tWait 3 seconds for timer to initialize\n\n" +
+                            "4.\tLift the cube to start the timer\n\n" +
+                            "5.\tWhen solve is complete, 'slap' the table with your hands to end the timer!\n\n" +
+                            "**Hint** - You might have to adjust the 'Slap Sensitivity' in settings if your phone isn't detecting the vibration of your hands.\n" +
+                            "The lower the number, the more sensitive it is"
+
             );
             new AlertDialog.Builder(this)
-                    .setTitle("First Run")
+                    .setTitle("How to use this app:")
                     .setView(howTo)
                     .setCancelable(false)
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {

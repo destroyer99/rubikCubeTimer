@@ -11,7 +11,7 @@
             android:switchTextOn="Large" />
 
         <EditTextPreference
-            android:title="Gyro Threshold"
+            android:title="Slap Sensitivity"
             android:key="gyroThreshold"
             android:defaultValue="25"
             android:editable="true"

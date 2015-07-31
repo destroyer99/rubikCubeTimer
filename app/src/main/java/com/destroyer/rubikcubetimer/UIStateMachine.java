@@ -76,16 +76,16 @@ public class UIStateMachine {
             new int[]{Color.GREEN,Color.rgb(0, 58, 10)},
             new float[]{0, 1}, Shader.TileMode.CLAMP);
     Shader redTextShader=new LinearGradient(0, 0, 0, 35,
-            new int[]{Color.RED,Color.rgb(40, 0, 0)},
+            new int[]{Color.RED,Color.rgb(105, 0, 0)},
             new float[]{0, 1}, Shader.TileMode.CLAMP);
     Shader blueTextShader=new LinearGradient(0, 0, 0, 35,
-            new int[]{Color.rgb(50, 135, 255),Color.rgb(0, 76, 153)},
+            new int[]{Color.rgb(100, 185, 255),Color.rgb(0, 76, 153)},
             new float[]{0, 1}, Shader.TileMode.CLAMP);
     Shader orangeTextShader=new LinearGradient(0, 0, 0, 35,
             new int[]{Color.rgb(255, 128, 0),Color.rgb(54, 40, 0)},
             new float[]{0, 1}, Shader.TileMode.CLAMP);
     Shader whiteTextShader=new LinearGradient(0, 0, 0, 35,
-            new int[]{Color.WHITE,Color.rgb(33, 33, 33)},
+            new int[]{Color.WHITE,Color.rgb(70, 70, 70)},
             new float[]{0, 1}, Shader.TileMode.CLAMP);
     Shader yellowTextShader=new LinearGradient(0, 0, 0, 35,
             new int[]{Color.YELLOW,Color.rgb(70, 63, 0)},
@@ -124,6 +124,7 @@ public class UIStateMachine {
                             db.open();
                             db.addTime(System.currentTimeMillis(), millis, scrambleTxt.getText().toString());
                             db.close();
+                            cdtSaving.cancel();
                             nextState();
                             dialog.dismiss();
                         }
