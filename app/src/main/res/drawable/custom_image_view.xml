@@ -10,7 +10,7 @@
         app:state_running="false"
         app:state_stopping="false"
         app:state_finished="false"
-        android:drawable="@drawable/glow_start_rainbow2" />
+        android:drawable="@drawable/glow_start" />
     <item
         app:state_start="false"
         app:state_cdt="true"

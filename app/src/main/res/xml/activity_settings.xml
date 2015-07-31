@@ -13,7 +13,7 @@
         <EditTextPreference
             android:title="Gyro Threshold"
             android:key="gyroThreshold"
-            android:defaultValue="18"
+            android:defaultValue="25"
             android:editable="true"
             android:inputType="number"
             android:summary="Gyro Sensitivity Threshold" />

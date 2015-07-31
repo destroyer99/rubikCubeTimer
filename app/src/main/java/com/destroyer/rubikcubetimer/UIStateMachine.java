@@ -70,6 +70,8 @@ public class UIStateMachine {
 
     private Animation animationFadeOut, animationFadeIn, animationBlink, animationFadeOutComplete, animationFadeInComplete;
 
+
+    //------------------Shaders for the Stats TextViews---------------------//
     Shader greenTextShader=new LinearGradient(0, 0, 0, 35,
             new int[]{Color.GREEN,Color.rgb(0, 58, 10)},
             new float[]{0, 1}, Shader.TileMode.CLAMP);
@@ -77,7 +79,7 @@ public class UIStateMachine {
             new int[]{Color.RED,Color.rgb(40, 0, 0)},
             new float[]{0, 1}, Shader.TileMode.CLAMP);
     Shader blueTextShader=new LinearGradient(0, 0, 0, 35,
-            new int[]{Color.rgb(0, 115, 255),Color.rgb(0, 21, 70)},
+            new int[]{Color.rgb(50, 135, 255),Color.rgb(0, 76, 153)},
             new float[]{0, 1}, Shader.TileMode.CLAMP);
     Shader orangeTextShader=new LinearGradient(0, 0, 0, 35,
             new int[]{Color.rgb(255, 128, 0),Color.rgb(54, 40, 0)},
@@ -196,7 +198,7 @@ public class UIStateMachine {
 
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
 
-        cdtWaiting = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "10")) + 1) * 1000, 100) {
+        cdtWaiting = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "15")) + 1) * 1000, 100) {
             @Override
             public void onTick(long millisUntilFinished) {
                 timerTxt.setText(String.format("%d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)));
@@ -229,7 +231,7 @@ public class UIStateMachine {
 
         stateList = new ArrayList<>();
 
-        stateList.add(STATES.START.ordinal(), new State(STATES.START, STATES.WAITING, R.drawable.glow_start_rainbow, R.drawable.btn_start));
+        stateList.add(STATES.START.ordinal(), new State(STATES.START, STATES.WAITING, R.drawable.glow_start, R.drawable.btn_start));
         stateList.add(STATES.WAITING.ordinal(), new State(STATES.WAITING, STATES.HOLDING, R.drawable.btn_waiting, R.drawable.btn_waiting));
         stateList.add(STATES.HOLDING.ordinal(), new State(STATES.HOLDING, STATES.READY, R.drawable.glow_holding, R.drawable.btn_holding));
         stateList.add(STATES.READY.ordinal(), new State(STATES.READY, STATES.RUNNING, R.drawable.glow_ready, R.drawable.btn_ready));
@@ -314,6 +316,7 @@ public class UIStateMachine {
                 dotLine.setVisibility(View.GONE);
                 cube.setVisibility(View.VISIBLE);
                 statsTxt.clearAnimation();
+                statsTxt.setText("");
                 btn.setClickable(true);
 
                 btn.setStateStart();
@@ -580,7 +583,7 @@ public class UIStateMachine {
         for (String txt : scrambles) {
             if (color) {
                 SpannableString ss = new SpannableString(txt);
-                ss.setSpan(new ForegroundColorSpan(Color.CYAN), 0, txt.length(), 0);
+                ss.setSpan(new ForegroundColorSpan(Color.rgb(0, 145, 255)), 0, txt.length(), 0);
                 finalScrambleTxt.append(ss).append("\u00A0\u00A0");
             } else {
                 finalScrambleTxt.append(txt).append("\u00A0\u00A0");
