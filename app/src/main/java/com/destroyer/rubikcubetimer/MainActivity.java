@@ -10,10 +10,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.Telephony;
-import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
@@ -23,22 +22,11 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.parse.FindCallback;
-import com.parse.GetCallback;
-import com.parse.Parse;
-import com.parse.ParseException;
-import com.parse.ParseObject;
-import com.parse.ParseQuery;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 /*TODO:
-    stats viewer/editor (database)
+
  */
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements AppInit.ActivityCallback {
 
     protected static long WEEK_IN_MILLISECONDS = 648000000L;
 
@@ -47,9 +35,7 @@ public class MainActivity extends Activity {
 
     private float[] gyroLast = {0, 0, 0};
     private float gyroThreshold;
-    private boolean gyroSettled = false, isTrialVer = false;
-
-    private Long appCreatedDate;
+    private boolean gyroSettled = false;
 
     private final SensorEventListener mSensorListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent event) {
@@ -95,9 +81,9 @@ public class MainActivity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (getActionBar() != null) getActionBar().hide();
 
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        ((AppInit)getApplication()).setActivity(this);
 
-        isTrialVersion();
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
     }
 
     @Override
@@ -140,6 +126,11 @@ public class MainActivity extends Activity {
                 findViewById(R.id.last12Txt),findViewById(R.id.last25Txt), findViewById(R.id.last50Txt), findViewById(R.id.monthTxt),
                 findViewById(R.id.lastTimeTxt), findViewById(R.id.scrambleTxt));
         stateMachine.resetState();
+
+        AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        if (audioManager.isWiredHeadsetOn()) {
+            Log.wtf("AUDIO", "Wired headset detected");
+        }
     }
 
     @Override
@@ -147,76 +138,6 @@ public class MainActivity extends Activity {
         mSensorManager.unregisterListener(mSensorListener);
         stateMachine.haltProcess();
         super.onPause();
-    }
-
-    private void isTrialVersion() {
-        Log.wtf("DEVICE_ID", ((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId());
-        final Context ctx = this;
-
-        Parse.initialize(this, "UMpeJeqOQFoiNMxTX0SozYgs2hobmX2YY4Mh7tuv", "7bWn5dI3JiWnKvrdE4Xd5sCOlLYY5UO9eO1WZA7x");
-
-        ParseQuery<ParseObject> query = ParseQuery.getQuery("trialVersion");
-        query.findInBackground(new FindCallback<ParseObject>() {
-            @Override
-            public void done(List<ParseObject> list, ParseException e) {
-                    if (e == null) {
-                        if (list.isEmpty()) { // device ID not in DB (DB empty)
-                            // add device to DB
-                            ParseObject trialVersion = new ParseObject("trialVersion");
-                            trialVersion.put("deviceId", ((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId());
-                            trialVersion.put("millis", System.currentTimeMillis());
-                            trialVersion.saveInBackground();
-                            Log.wtf("PARSE", "empty DB, added device to cloud DB");
-                        } else{ // found device ID
-                            // find matching device ID
-                            List<Integer> foundID = new ArrayList<>();
-                            for (ParseObject obj : list) {
-                                if (obj.getString("deviceId").equals(((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId())) {
-                                    foundID.add(list.indexOf(obj));
-                                }
-                            }
-
-                            if (foundID.isEmpty()) { // device ID not in DB
-                                // add device to DB
-                                ParseObject trialVersion = new ParseObject("trialVersion");
-                                trialVersion.put("deviceId", ((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId());
-                                trialVersion.put("millis", System.currentTimeMillis());
-                                trialVersion.saveInBackground();
-                                Log.wtf("PARSE", "added device to cloud DB");
-                                return;
-                            }
-                            if (foundID.size() > 1) { // found multiple matching IDs (should not happen)
-                                Log.wtf("PARSE", "found " + foundID + " devices with mathcing ID");
-                                return;
-                            }
-                            appCreatedDate = list.get(foundID.get(0)).getLong("millis");
-                            Log.wtf("PARSE", "found device id: " + list.get(foundID.get(0)).getString("deviceId"));
-
-                            Log.wtf("temp", String.valueOf(appCreatedDate));
-                            isTrialVer = System.currentTimeMillis() - appCreatedDate < WEEK_IN_MILLISECONDS;
-                            Log.wtf("TRIAL", String.valueOf(isTrialVer));
-
-                            if (isTrialVer) {
-                                Log.w("time1", String.valueOf(WEEK_IN_MILLISECONDS));
-                                Log.w("time2", String.valueOf((System.currentTimeMillis() - appCreatedDate)));
-                                long millis = (WEEK_IN_MILLISECONDS - (System.currentTimeMillis() - appCreatedDate));
-                                Log.w("timeMillis", String.valueOf(millis));
-                                new AlertDialog.Builder(ctx)
-                                        .setTitle("Trial Version")
-                                        .setMessage("You have " + (millis / (1000*60*60*24)) + " days left on your trial version.")
-                                        .setCancelable(false)
-                                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                                dialog.dismiss();
-                                            }
-                                        }).show();
-                            }
-                        }
-                    } else {
-                        Log.wtf("PARSE_EXCEPTION", e.getMessage());
-                    }
-            }
-        });
     }
 
     public void onButtonClick(View view) {
@@ -232,6 +153,22 @@ public class MainActivity extends Activity {
 
             default:
                 break;
+        }
+    }
+
+    @Override
+    public void displayTrialTimeRemaining(long appCreatedDate) {
+        if ((System.currentTimeMillis() - appCreatedDate) < WEEK_IN_MILLISECONDS) {
+            long millisLeft = (WEEK_IN_MILLISECONDS - (System.currentTimeMillis() - appCreatedDate));
+            new AlertDialog.Builder(this)
+                    .setTitle("Trial Version")
+                    .setMessage("You have " + (millisLeft / (1000*60*60*24)) + " days left on your trial version.")
+                    .setCancelable(false)
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            dialog.dismiss();
+                        }
+                    }).show();
         }
     }
 
@@ -263,7 +200,6 @@ public class MainActivity extends Activity {
 
             case R.id.action_db:
                 startActivity(new Intent(this, DBViewerActivity.class));
-//                Toast.makeText(this, "DB Viewer/Editor", Toast.LENGTH_LONG).show();
                 break;
 
             default:
