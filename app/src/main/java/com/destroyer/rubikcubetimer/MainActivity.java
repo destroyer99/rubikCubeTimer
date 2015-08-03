@@ -22,8 +22,11 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
-/*TODO:
-
+/* TODO:
+ * auto-calibrating gyroscope threshold method
+ * audio jack pwm sender
+ * audio jack pwm reader
+ * ads
  */
 
 public class MainActivity extends Activity implements AppInit.ActivityCallback {
@@ -32,6 +35,7 @@ public class MainActivity extends Activity implements AppInit.ActivityCallback {
 
     private UIStateMachine stateMachine;
     private SensorManager mSensorManager;
+    private ExternalPadAdapter epa;
 
     private float[] gyroLast = {0, 0, 0};
     private float gyroThreshold;
@@ -84,6 +88,7 @@ public class MainActivity extends Activity implements AppInit.ActivityCallback {
         ((AppInit)getApplication()).setActivity(this);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        epa = new ExternalPadAdapter(this);
     }
 
     @Override
@@ -144,6 +149,7 @@ public class MainActivity extends Activity implements AppInit.ActivityCallback {
         switch (stateMachine.getState()) {
             case START:
                 mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_FASTEST);
+//                epa.stop();
                 break;
 
             case WAITING: case HOLDING: case READY:
@@ -192,10 +198,12 @@ public class MainActivity extends Activity implements AppInit.ActivityCallback {
 
             case R.id.action_about:
                 Toast.makeText(this, "About", Toast.LENGTH_LONG).show();
+//                epa.logReadBuffer();
                 break;
 
             case R.id.action_help:
                 Toast.makeText(this, "Help", Toast.LENGTH_LONG).show();
+//                epa.start();
                 break;
 
             case R.id.action_db:

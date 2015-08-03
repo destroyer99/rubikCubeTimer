@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="Theme">
-        <SwitchPreference
-            android:title="Font Size"
-            android:key="fontSize"
-            android:defaultValue="false"
-            android:summary="Choose Font Size..."
-            android:switchTextOff="Small"
-            android:switchTextOn="Large" />
-
+    <PreferenceCategory android:title="APP">
         <EditTextPreference
             android:title="Slap Sensitivity"
             android:key="gyroThreshold"
@@ -17,19 +9,6 @@
             android:editable="true"
             android:inputType="number"
             android:summary="Gyro Sensitivity Threshold" />
-
-        <EditTextPreference
-            android:title="Timer Precision"
-            android:key="timerPrecision"
-            android:defaultValue="21"
-            android:editable="true"
-            android:inputType="number"
-            android:summary="Timer Update Precision" />
-
-        <Preference
-            android:title="Clear Database"
-            android:key="clearDB"
-            android:summary="Delete all scores in database." />
 
         <SwitchPreference
             android:title="Vibration"
@@ -59,6 +38,21 @@
             android:title="Change Timer Font"
             android:key="timerFont"
             android:summary="Change the font of the main Timer" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="DEV" >
+        <EditTextPreference
+            android:title="Timer Precision"
+            android:key="timerPrecision"
+            android:defaultValue="21"
+            android:editable="true"
+            android:inputType="number"
+            android:summary="Timer Update Precision" />
+
+        <Preference
+            android:title="Clear Database"
+            android:key="clearDB"
+            android:summary="Delete all scores in database." />
 
         <SwitchPreference
             android:title="First Run Splash"
@@ -67,5 +61,13 @@
             android:summary="Show splash screen on first run of app"
             android:summaryOn="On"
             android:summaryOff="Off" />
+
+        <SwitchPreference
+            android:title="Reset Paid Version"
+            android:key="paidVersionReset"
+            android:defaultValue="true"
+            android:summary="Reset paid version on startup"
+            android:summaryOn="Yes"
+            android:summaryOff="No" />
     </PreferenceCategory>
 </PreferenceScreen>

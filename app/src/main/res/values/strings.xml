@@ -9,4 +9,5 @@
     <string name="title_activity_settings">SettingsActivity</string>
     <string name="imgViewContectDescription">img</string>
     <string name="title_activity_dbviewer">DBViewerActivity</string>
+    <string name="title_activity_dtmf">DtmfActivity</string>
 </resources>

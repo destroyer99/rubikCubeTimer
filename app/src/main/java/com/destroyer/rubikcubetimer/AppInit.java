@@ -1,6 +1,7 @@
 package com.destroyer.rubikcubetimer;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -21,7 +22,13 @@ public class AppInit extends android.app.Application {
     public void onCreate() {
         super.onCreate();
 
-        if (!getSharedPreferences("appPreferences", MODE_PRIVATE).getBoolean("paidVersion", false)) {
+        final SharedPreferences sharedPrefs = getSharedPreferences("appPreferences", MODE_PRIVATE);
+        Log.wtf("paidVersionReset_pref", String.valueOf(sharedPrefs.getBoolean("paidVersionReset", false)));
+        if (sharedPrefs.getBoolean("paidVersionReset", false)) {
+            sharedPrefs.edit().remove("paidVersion").commit();
+        }
+
+        if (!sharedPrefs.getBoolean("paidVersion", false)) {
             Parse.initialize(this, "UMpeJeqOQFoiNMxTX0SozYgs2hobmX2YY4Mh7tuv", "7bWn5dI3JiWnKvrdE4Xd5sCOlLYY5UO9eO1WZA7x");
             ParseQuery<ParseObject> query = ParseQuery.getQuery("paidVersion");
             query.findInBackground(new FindCallback<ParseObject>() {
@@ -34,8 +41,8 @@ public class AppInit extends android.app.Application {
                                 foundID.add(list.indexOf(obj));
                             }
                         }
-                        Log.wtf("PAID_VERSION", String.valueOf(!foundID.isEmpty()));
-                        getSharedPreferences("appPreferences", MODE_PRIVATE).edit().putBoolean("paidVersion", !foundID.isEmpty()).commit();
+                        Log.d("PAID_VERSION", String.valueOf(!foundID.isEmpty()));
+                        sharedPrefs.edit().putBoolean("paidVersion", !foundID.isEmpty()).commit();
 
                         if (foundID.isEmpty()) {
                             ParseQuery<ParseObject> query = ParseQuery.getQuery("trialVersion");
@@ -50,7 +57,7 @@ public class AppInit extends android.app.Application {
                                             trialVersion.put("deviceId", ((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId());
                                             trialVersion.put("millis", System.currentTimeMillis());
                                             trialVersion.saveInBackground();
-                                            Log.wtf("PARSE", "empty DB, added device to cloud DB");
+                                            Log.d("PARSE", "empty DB, added device to cloud DB");
                                         } else { // found device ID
                                             // find matching device ID
                                             List<Integer> foundID = new ArrayList<>();
@@ -66,24 +73,24 @@ public class AppInit extends android.app.Application {
                                                 trialVersion.put("deviceId", ((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId());
                                                 trialVersion.put("millis", System.currentTimeMillis());
                                                 trialVersion.saveInBackground();
-                                                Log.wtf("PARSE", "added device to cloud DB");
+                                                Log.d("PARSE", "added device to cloud DB");
                                                 return;
                                             }
                                             if (foundID.size() > 1) { // found multiple matching IDs (should not happen)
-                                                Log.wtf("PARSE", "found " + foundID + " devices with mathcing ID");
+                                                Log.d("PARSE", "found " + foundID + " devices with mathcing ID");
                                                 return;
                                             }
-                                            Log.wtf("PARSE", "found device id: " + list.get(foundID.get(0)).getString("deviceId"));
-                                            ((ActivityCallback)mainActivity).displayTrialTimeRemaining(list.get(foundID.get(0)).getLong("millis"));
+                                            Log.d("PARSE", "found device id: " + list.get(foundID.get(0)).getString("deviceId"));
+                                            ((ActivityCallback) mainActivity).displayTrialTimeRemaining(list.get(foundID.get(0)).getLong("millis"));
                                         }
                                     } else {
-                                        Log.wtf("PARSE_EXCEPTION", e.getMessage());
+                                        Log.d("PARSE_EXCEPTION", e.getMessage());
                                     }
                                 }
                             });
                         }
                     } else {
-                        Log.wtf("PARSE_EXCEPTION", e.getMessage());
+                        Log.d("PARSE_EXCEPTION", e.getMessage());
                     }
                 }
             });
