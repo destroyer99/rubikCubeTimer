@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -23,16 +24,23 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 /* TODO:
- * auto-calibrating gyroscope threshold method
- * audio jack pwm sender
- * audio jack pwm reader
+ * audio jack pwm sender/reader
  * ads
+ * fix trail/paid version checker
+ *  -> on install: check serverPaidDB for deviceId
+ *      -> if exists: set local paid pref true
+ *      -> else: check serverTrialDB for deviceId
+ *          -> if exists: pull install date/time from serverTrialDB into local trial pref
+ *          -> else: put current date/time into serverTrialDB and local trial pref
+ *  -> on run: check local prefs for paid/trial values
+ *  -> add new setting to check server for app status
  */
 
-public class MainActivity extends Activity implements AppInit.ActivityCallback {
+public class MainActivity extends Activity {
 
     protected static long WEEK_IN_MILLISECONDS = 648000000L;
 
+    private SharedPreferences prefs;
     private UIStateMachine stateMachine;
     private SensorManager mSensorManager;
     private ExternalPadAdapter epa;
@@ -86,7 +94,7 @@ public class MainActivity extends Activity implements AppInit.ActivityCallback {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (getActionBar() != null) getActionBar().hide();
 
-        ((AppInit)getApplication()).setActivity(this);
+        prefs = getSharedPreferences("appPreferences", Context.MODE_PRIVATE);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         epa = new ExternalPadAdapter(this);
@@ -96,7 +104,8 @@ public class MainActivity extends Activity implements AppInit.ActivityCallback {
     protected void onResume() {
         super.onResume();
 
-        if (getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("firstRun", true)) {
+        if (prefs.getBoolean("firstRun", true)) {
+            prefs.edit().putBoolean("trialVersion", false).apply();
             TextView howTo = new TextView(this);
             howTo.setTextSize(16);
             howTo.setTypeface(null, Typeface.NORMAL);
@@ -117,10 +126,42 @@ public class MainActivity extends Activity implements AppInit.ActivityCallback {
                     .setCancelable(false)
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                            getSharedPreferences("appPreferences", Context.MODE_PRIVATE).edit().putBoolean("firstRun", false).apply();
+                            prefs.edit().putBoolean("firstRun", false).apply();
                             dialog.dismiss();
                         }
                     }).show();
+        } else {
+            if (prefs.getBoolean("paidVersion", false)) {
+                // TODO: do paid version stuff
+            } else {
+                long appCreatedDate = prefs.getLong("trialVersion", -1);
+
+                if (appCreatedDate == -1) {
+                    // TODO: cannot get pref
+                } else if ((System.currentTimeMillis() - appCreatedDate) < WEEK_IN_MILLISECONDS) {
+                    long millisLeft = (WEEK_IN_MILLISECONDS - (System.currentTimeMillis() - appCreatedDate));
+                    new AlertDialog.Builder(this)
+                            .setTitle("Trial Version")
+                            .setMessage("You have " + (millisLeft / (1000*60*60*24)) + " days left on your trial version.")
+                            .setCancelable(false)
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                    dialog.dismiss();
+                                }
+                            }).show();
+                } else {
+                    new AlertDialog.Builder(this)
+                            .setTitle("Trial Version")
+                            .setMessage("Trial Version Expired, give us your money")
+                            .setCancelable(false)
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                    dialog.dismiss();
+                                }
+                            }).show();
+                }
+            }
+
         }
 
         DisplayMetrics displayMetrics = new DisplayMetrics();
@@ -166,22 +207,6 @@ public class MainActivity extends Activity implements AppInit.ActivityCallback {
 
             default:
                 break;
-        }
-    }
-
-    @Override
-    public void displayTrialTimeRemaining(long appCreatedDate) {
-        if ((System.currentTimeMillis() - appCreatedDate) < WEEK_IN_MILLISECONDS) {
-            long millisLeft = (WEEK_IN_MILLISECONDS - (System.currentTimeMillis() - appCreatedDate));
-            new AlertDialog.Builder(this)
-                    .setTitle("Trial Version")
-                    .setMessage("You have " + (millisLeft / (1000*60*60*24)) + " days left on your trial version.")
-                    .setCancelable(false)
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                            dialog.dismiss();
-                        }
-                    }).show();
         }
     }
 
