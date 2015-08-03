@@ -43,6 +43,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.destroyer.rubikcubetimer.MainActivity" />
         </activity>
+        <activity
+            android:name=".GyroCalibrationActivity"
+            android:label="@string/title_activity_gyro_calibration"
+            android:parentActivityName=".SettingsActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.destroyer.rubikcubetimer.SettingsActivity" />
+        </activity>
     </application>
 
 </manifest>

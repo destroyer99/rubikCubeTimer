@@ -10,4 +10,5 @@
     <string name="imgViewContectDescription">img</string>
     <string name="title_activity_dbviewer">DBViewerActivity</string>
     <string name="title_activity_dtmf">DtmfActivity</string>
+    <string name="title_activity_gyro_calibration">GyroCalibrationActivity</string>
 </resources>

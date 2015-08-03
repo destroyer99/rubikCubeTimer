@@ -2,14 +2,6 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="APP">
-        <EditTextPreference
-            android:title="Slap Sensitivity"
-            android:key="gyroThreshold"
-            android:defaultValue="25"
-            android:editable="true"
-            android:inputType="number"
-            android:summary="Gyro Sensitivity Threshold" />
-
         <SwitchPreference
             android:title="Vibration"
             android:key="vibrate"
@@ -38,9 +30,21 @@
             android:title="Change Timer Font"
             android:key="timerFont"
             android:summary="Change the font of the main Timer" />
+
+        <Preference
+            android:title="Gyro Auto-Calibration"
+            android:key="gyroThresholdAuto"
+            android:summary="Calibrate the gyroscope sensitivity" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="DEV" >
+        <EditTextPreference
+            android:title="Slap Sensitivity"
+            android:key="gyroThreshold"
+            android:defaultValue="0.025;0.025;0.025"
+            android:editable="true"
+            android:summary="Gyro Sensitivity Threshold" />
+
         <EditTextPreference
             android:title="Timer Precision"
             android:key="timerPrecision"

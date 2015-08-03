@@ -3,6 +3,7 @@ package com.destroyer.rubikcubetimer;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -18,9 +19,8 @@ import android.widget.Toast;
 
 public class SettingsActivity extends PreferenceActivity {
 
-    Context context;
-    String selectedFont;
-    SharedPreferences.Editor prefEditor;
+    private Context context;
+    private SharedPreferences.Editor prefEditor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,12 +97,16 @@ public class SettingsActivity extends PreferenceActivity {
                 return false;
             }
         });
-    }
 
-    public void onRadioClick(View view) {
-        selectedFont = view.getTag().toString();
-    }
+        findPreference("gyroThresholdAuto").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
 
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                startActivity(new Intent(context, GyroCalibrationActivity.class));
+                return false;
+            }
+        });
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

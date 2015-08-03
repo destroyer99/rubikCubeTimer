@@ -11,7 +11,6 @@
         android:id="@+id/AtomicClockRadio"
         android:text="Atomic Clock Radio"
         android:textSize="20sp"
-        android:onClick="onRadioClick"
         android:tag="atomic"/>
 
     <RadioButton
@@ -20,7 +19,6 @@
         android:id="@+id/ChickenScratch"
         android:text="Chicken Scratch"
         android:textSize="20sp"
-        android:onClick="onRadioClick"
         android:tag="chickenscratch"/>
 
     <RadioButton
@@ -29,7 +27,6 @@
         android:id="@+id/ComicBook"
         android:text="Comic Book"
         android:textSize="20sp"
-        android:onClick="onRadioClick"
         android:tag="comicbook"/>
 
     <RadioButton
@@ -38,7 +35,6 @@
         android:id="@+id/Delusion"
         android:text="Delusion"
         android:textSize="20sp"
-        android:onClick="onRadioClick"
         android:tag="delusion"/>
 
     <RadioButton
@@ -47,7 +43,6 @@
         android:id="@+id/Eroded"
         android:text="Retro Erosion"
         android:textSize="20sp"
-        android:onClick="onRadioClick"
         android:tag="eroded"/>
 
     <RadioButton
@@ -56,7 +51,6 @@
         android:id="@+id/Earthquake"
         android:text="Earthquake"
         android:textSize="20sp"
-        android:onClick="onRadioClick"
         android:tag="earthquake"/>
 
     <RadioButton
@@ -65,7 +59,6 @@
         android:id="@+id/GhettoMarquee"
         android:text="Ghetto Marquee"
         android:textSize="20sp"
-        android:onClick="onRadioClick"
         android:tag="ghetto"/>
 
     <RadioButton
@@ -74,7 +67,6 @@
         android:id="@+id/HemiHead426"
         android:text="HemiHead426"
         android:textSize="20sp"
-        android:onClick="onRadioClick"
         android:tag="hemihead426"/>
 
     <RadioButton
@@ -83,7 +75,6 @@
         android:id="@+id/Jerrybuilt"
         android:text="Jerrybuilt"
         android:textSize="20sp"
-        android:onClick="onRadioClick"
         android:tag="jerrybuilt"/>
 
     <RadioButton
@@ -92,7 +83,6 @@
         android:id="@+id/LetsGoDigital"
         android:text="Lets Go Digital"
         android:textSize="20sp"
-        android:onClick="onRadioClick"
         android:tag="letsgodigital"/>
 
     <RadioButton
@@ -101,7 +91,6 @@
         android:id="@+id/RuggedRide"
         android:text="Rugged Ride"
         android:textSize="20sp"
-        android:onClick="onRadioClick"
         android:tag="rugged"/>
 
     <RadioButton
@@ -110,7 +99,6 @@
         android:id="@+id/See"
         android:text="See"
         android:textSize="20sp"
-        android:onClick="onRadioClick"
         android:tag="see"/>
 
 

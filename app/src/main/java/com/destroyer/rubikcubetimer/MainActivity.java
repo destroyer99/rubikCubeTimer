@@ -38,13 +38,14 @@ public class MainActivity extends Activity implements AppInit.ActivityCallback {
     private ExternalPadAdapter epa;
 
     private float[] gyroLast = {0, 0, 0};
-    private float gyroThreshold;
+    private float[] gyroThreshold = {0, 0, 0};
     private boolean gyroSettled = false;
+    private boolean doubleBackToExitPressedOnce = false;
 
     private final SensorEventListener mSensorListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent event) {
             if(event.sensor.getType()==Sensor.TYPE_GYROSCOPE) {
-                if (gyroSettled && (Math.abs(event.values[0]) - gyroLast[0] > gyroThreshold || Math.abs(event.values[1]) - gyroLast[1] > gyroThreshold || Math.abs(event.values[2]) - gyroLast[2] > gyroThreshold)) {
+                if (gyroSettled && (Math.abs(event.values[0]) - gyroLast[0] > gyroThreshold[0] || Math.abs(event.values[1]) - gyroLast[1] > gyroThreshold[1] || Math.abs(event.values[2]) - gyroLast[2] > gyroThreshold[2])) {
                     stateMachine.nextState();
                     mSensorManager.unregisterListener(mSensorListener);
                 } else {
@@ -124,7 +125,13 @@ public class MainActivity extends Activity implements AppInit.ActivityCallback {
 
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
-        gyroThreshold = Float.valueOf(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("gyroThreshold", "25")) / 1000;
+
+//        gyroThreshold = Float.valueOf(getSharedPreferences("appPreferences", MODE_PRIVATE).getString("gyroThreshold", "25")) / 1000;
+        String[] gyroVals = getSharedPreferences("appPreferences", MODE_PRIVATE).getString("gyroThreshold", "0.025;0.025;0.025").split(";");
+        gyroThreshold[0] = Float.valueOf(gyroVals[0]);
+        gyroThreshold[1] = Float.valueOf(gyroVals[1]);
+        gyroThreshold[2] = Float.valueOf(gyroVals[2]);
+
         stateMachine = new UIStateMachine(this, displayMetrics.ydpi, findViewById(R.id.bkgGlow),
                 findViewById(R.id.startResetBtn), findViewById(R.id.cube), findViewById(R.id.dottedLine), findViewById(R.id.statsTxt),
                 findViewById(R.id.timerTxt), findViewById(R.id.bestTimeTxt), findViewById(R.id.worstTimeText), findViewById(R.id.last5Txt),
@@ -176,6 +183,26 @@ public class MainActivity extends Activity implements AppInit.ActivityCallback {
                         }
                     }).show();
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (doubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            return;
+        } else if (stateMachine.getState() != UIStateMachine.STATES.START) {
+            stateMachine.resetState();
+        }
+
+        this.doubleBackToExitPressedOnce = true;
+        Toast.makeText(getApplicationContext(), "Press BACK again to exit", Toast.LENGTH_SHORT).show();
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                doubleBackToExitPressedOnce = false;
+            }
+        }, 2000);
     }
 
     @Override
