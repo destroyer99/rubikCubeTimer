@@ -199,6 +199,7 @@ public class MainActivity extends Activity implements AppInit.ActivityCallback {
             case R.id.action_about:
                 Toast.makeText(this, "About", Toast.LENGTH_LONG).show();
 //                epa.logReadBuffer();
+//                epa.playTone();
                 break;
 
             case R.id.action_help:

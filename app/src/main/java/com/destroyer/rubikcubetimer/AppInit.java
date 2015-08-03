@@ -42,7 +42,6 @@ public class AppInit extends android.app.Application {
                             }
                         }
                         Log.d("PAID_VERSION", String.valueOf(!foundID.isEmpty()));
-                        sharedPrefs.edit().putBoolean("paidVersion", !foundID.isEmpty()).commit();
 
                         if (foundID.isEmpty()) {
                             ParseQuery<ParseObject> query = ParseQuery.getQuery("trialVersion");
@@ -88,7 +87,7 @@ public class AppInit extends android.app.Application {
                                     }
                                 }
                             });
-                        }
+                        } else sharedPrefs.edit().putBoolean("paidVersion", !foundID.isEmpty()).apply();
                     } else {
                         Log.d("PARSE_EXCEPTION", e.getMessage());
                     }

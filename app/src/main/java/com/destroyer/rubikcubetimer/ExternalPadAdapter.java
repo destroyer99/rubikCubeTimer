@@ -23,6 +23,7 @@ public class ExternalPadAdapter {
 
     private boolean isRunning;
     private byte[] buffer = new byte[bufferSize];
+    private byte[] generatedTone;
 
     private Context context;
     private AudioTrack track;
@@ -48,17 +49,18 @@ public class ExternalPadAdapter {
 
     private void startListener() {
         /** ======= Initialize AudioRecord and AudioTrack ======== **/
-        track = findAudioTrack(track);
-        if (track == null) {
-            Log.wtf("EPA", "======== findAudioTrack : Returned Error! ========== ");
+        recorder = findAudioRecord();
+        if (recorder == null) {
+            Log.e("EPA", "======== findAudioRecord : Returned Error! =========== ");
             return;
         }
 
-        recorder = findAudioRecord();
-        if (recorder == null) {
-            Log.wtf("EPA", "======== findAudioRecord : Returned Error! =========== ");
-            return;
-        }
+        generatedTone = generateTone();
+        track = new AudioTrack(AudioManager.STREAM_MUSIC,
+                TONE_SAMPLE_RATE, AudioFormat.CHANNEL_OUT_STEREO,
+                AudioFormat.ENCODING_PCM_16BIT, generatedTone.length,
+                AudioTrack.MODE_STATIC);
+        track.write(generatedTone, 0, generatedTone.length);
 
         if ((AudioRecord.STATE_INITIALIZED == recorder.getState()) &&
                 (AudioTrack.STATE_INITIALIZED == track.getState()))
@@ -68,7 +70,6 @@ public class ExternalPadAdapter {
 
             byte[] generatedSnd = generateTone(track.getSampleRate());
 
-            track.write(generatedSnd, 0, generatedSnd.length);
             track.setLoopPoints(0, generatedSnd.length / 4, -1);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -81,15 +82,16 @@ public class ExternalPadAdapter {
         }
         else
         {
-            Log.wtf("EPA", "==== Initilazation failed for AudioRecord or AudioTrack =====");
+            Log.e("EPA", "==== Initilazation failed for AudioRecord ( " + recorder.getState() + ") or AudioTrack (" + track.getState() + ")");
             return;
         }
 
         while (isRunning)
         {
             recorder.read(buffer, 0, bufferSize);
+
         }
-        Log.d("EPA", "Loopback exit");
+        Log.d("EPA", "Listener Exited");
     }
 
     public void start() {
@@ -118,13 +120,30 @@ public class ExternalPadAdapter {
         Log.wtf("MICROPHONE_BUFFER", Arrays.toString(buffer));
     }
 
-    private void generateTone() {
-        this.generateTone(TONE_SAMPLE_RATE);
+    public void playTone() {
+        final byte[] genTone = generateTone();
+        final AudioTrack track2 = new AudioTrack(AudioManager.STREAM_MUSIC,
+                TONE_SAMPLE_RATE, AudioFormat.CHANNEL_OUT_STEREO,
+                AudioFormat.ENCODING_PCM_16BIT, genTone.length,
+                AudioTrack.MODE_STATIC);
+        track2.write(genTone, 0, genTone.length);
+        track2.setLoopPoints(0, genTone.length / 4, -1);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            track2.setVolume(0.50f);
+        } else {
+            track2.setStereoVolume(0.50f, 0.50f);
+        }
+        track2.play();
+    }
+
+    private byte[] generateTone() {
+        return this.generateTone(TONE_SAMPLE_RATE);
     }
 
     private byte[] generateTone(int sampleRate){
         final double sample[] = new double[sampleRate];
-        final byte generatedSnd[] = new byte[2 * sampleRate];
+        final byte generatedTone[] = new byte[2 * sampleRate];
 
         for (int i = 0; i < sampleRate; ++i) {
             sample[i] = Math.sin(2 * Math.PI * i / (sampleRate /LEFT_TONE_FREQ));
@@ -134,58 +153,33 @@ public class ExternalPadAdapter {
         int idx = 0;
         for (final double dVal : sample) {
             final short val = (short) ((dVal * 32767));
-            generatedSnd[idx++] = (byte) (val & 0x00ff);
-            generatedSnd[idx++] = (byte) ((val & 0xff00) >>> 8);
+            generatedTone[idx++] = (byte) (val & 0x00ff);
+            generatedTone[idx++] = (byte) ((val & 0xff00) >>> 8);
         }
-        return generatedSnd;
-    }
-
-    private AudioTrack findAudioTrack(AudioTrack track) {
-        for (int sampleRate : new int[] {8000, 11025, 22050, 44100}) {
-            try {
-                int bufferSize = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT);
-
-                if (bufferSize != AudioTrack.ERROR_BAD_VALUE) {
-                    track = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate, AudioFormat.CHANNEL_IN_STEREO,
-                            AudioFormat.ENCODING_PCM_16BIT, bufferSize*2, AudioTrack.MODE_STATIC);
-
-                    if (track.getState() == AudioTrack.STATE_INITIALIZED) {
-                        Log.d("FIND_TRACK", "Successful rate " + sampleRate + "Hz, bits: " + AudioFormat.ENCODING_PCM_16BIT +
-                                ", channel: " + AudioFormat.CHANNEL_IN_STEREO);
-                        return track;
-                    } else Log.d("adfasfd", "adfasdf");
-                } else Log.d("qwerqwerqwer", "qweqwerweqr");
-            } catch (Exception e) {
-                Log.e("FIND_TRACK", sampleRate + ":" + AudioFormat.ENCODING_PCM_16BIT + ":" + AudioFormat.CHANNEL_IN_STEREO + "\t" + "Exception, keep trying.",e);
-            }
-        }
-        return null;
+        return generatedTone;
     }
 
     private AudioRecord findAudioRecord() {
-        for (int sampleRate : new int[] {8000, 11025, 22050, 44100}) {
-            for (short audioFormat : new short[] {AudioFormat.ENCODING_PCM_16BIT, AudioFormat.ENCODING_PCM_8BIT}) {
-                for (short channelConfig : new short[] {AudioFormat.CHANNEL_IN_STEREO, AudioFormat.CHANNEL_IN_MONO}) {
-                    try {
-                        int bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat);
+//        for (int sampleRate : new int[] {8000, 11025, 22050, 44100}) {
+        for (int sampleRate : new int[] {44100, 22050, 11025, 8000}) {
+            try {
+                int bufferSize = AudioRecord.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT);
 
-                        if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
-                            // check if we can instantiate and have a success
-                            AudioRecord recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate,
-                                    channelConfig, audioFormat, bufferSize);
+                if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
+                    AudioRecord recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate,
+                            AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT, bufferSize);
 
-                            if (recorder.getState() == AudioRecord.STATE_INITIALIZED) {
-                                Log.d("FIND_RECORDER", "Successful rate " + sampleRate + "Hz, bits: " + audioFormat +
-                                        ", channel: " + channelConfig);
-                                return recorder;
-                            }
-                        }
-                    } catch (Exception e) {
-                        Log.e("FIND_RECORDER", sampleRate + ":" + audioFormat + ":" + channelConfig + "\t" + "Exception, keep trying.",e);
+                    if (recorder.getState() == AudioRecord.STATE_INITIALIZED) {
+                        Log.d("FIND_RECORDER", "Successful rate " + sampleRate + "Hz, bits: " + AudioFormat.ENCODING_PCM_16BIT +
+                                ", channel: " + AudioFormat.CHANNEL_IN_STEREO);
+                        return recorder;
                     }
                 }
+            } catch (Exception e) {
+                Log.e("FIND_RECORDER", sampleRate + ":" + AudioFormat.ENCODING_PCM_16BIT + ":" + AudioFormat.CHANNEL_IN_STEREO + "\t" + "Exception, keep trying.",e);
             }
         }
+        Log.d("FIND_AUDIO_RECORDER", "FAILED");
         return null;
     }
 }

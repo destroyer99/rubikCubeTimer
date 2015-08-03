@@ -311,6 +311,7 @@ public class UIStateMachine {
                 statsTxt.startAnimation(animationFadeInComplete);
                 statsTxt.setTextSize(24);
                 statsTxt.setTypeface(null, Typeface.NORMAL);
+                statsTxt.setText("");
                 updateStats();
 
                 timerTxt.setText("");
