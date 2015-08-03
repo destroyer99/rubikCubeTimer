@@ -9,6 +9,8 @@ import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
 import android.graphics.Typeface;
+import android.media.AudioManager;
+import android.media.ToneGenerator;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Vibrator;
@@ -402,6 +404,10 @@ public class UIStateMachine {
 
             case READY:
                 if (vibrate) vibrator.vibrate(750);
+                if (context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("beep", true)) {
+                    ToneGenerator tone = new ToneGenerator(AudioManager.STREAM_DTMF, 100);
+                    tone.startTone(ToneGenerator.TONE_CDMA_DIAL_TONE_LITE, 750);
+                }
                 dotLine.clearAnimation();
                 dotLine.setVisibility(View.GONE);
                 timerTxt.setTextColor(Color.WHITE);

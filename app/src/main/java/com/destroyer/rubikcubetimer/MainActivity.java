@@ -26,14 +26,6 @@ import android.widget.Toast;
 /* TODO:
  * audio jack pwm sender/reader
  * ads
- * fix trail/paid version checker
- *  -> on install: check serverPaidDB for deviceId
- *      -> if exists: set local paid pref true
- *      -> else: check serverTrialDB for deviceId
- *          -> if exists: pull install date/time from serverTrialDB into local trial pref
- *          -> else: put current date/time into serverTrialDB and local trial pref
- *  -> on run: check local prefs for paid/trial values
- *  -> add new setting to check server for app status
  */
 
 public class MainActivity extends Activity {
