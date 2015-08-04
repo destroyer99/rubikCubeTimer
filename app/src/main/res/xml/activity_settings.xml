@@ -2,11 +2,20 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="APP">
+
         <SwitchPreference
             android:title="Vibration"
             android:key="vibrate"
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:summary="Vibrate on count down"
+            android:summaryOn="On"
+            android:summaryOff="Off" />
+
+        <SwitchPreference
+            android:title="Beep"
+            android:key="beep"
+            android:defaultValue="false"
+            android:summary="Beep on count down"
             android:summaryOn="On"
             android:summaryOff="Off" />
 

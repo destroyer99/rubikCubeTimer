@@ -69,6 +69,8 @@ public class UIStateMachine {
     private CountDownTimer cdtWaiting, cdtHolding, cdtSaving;
     private boolean vibrate;
     private Vibrator vibrator;
+    private boolean beep;
+    private ToneGenerator tone;
 
     private Animation animationFadeOut, animationFadeIn, animationBlink, animationFadeOutComplete, animationFadeInComplete;
 
@@ -200,6 +202,7 @@ public class UIStateMachine {
         lastTimeTxt.getPaint().setShader(blueTextShader);
 
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        tone = new ToneGenerator(AudioManager.STREAM_DTMF, 100);
 
         cdtWaiting = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "15")) + 1) * 1000, 100) {
             @Override
@@ -222,6 +225,7 @@ public class UIStateMachine {
             public void onTick(long millisUntilFinished) {
                 if (millisUntilFinished < val*1000) {
                     if (vibrate) vibrator.vibrate(250);
+                    if (beep) tone.startTone(ToneGenerator.TONE_CDMA_DIAL_TONE_LITE, 250);
                     timerTxt.setText(String.valueOf(val--));
                 }
             }
@@ -269,6 +273,7 @@ public class UIStateMachine {
         timerTxt.clearAnimation();
         timerPrecision = Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("timerPrecision", "21"));
         vibrate = context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("vibrate", true);
+        beep = context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("beep", true);
         setCurrentState(stateList.get(STATES.START.ordinal()), null);
     }
 
@@ -398,16 +403,14 @@ public class UIStateMachine {
 
                 val = 3;
                 if (vibrate) vibrator.vibrate(250);
+                if (beep) tone.startTone(ToneGenerator.TONE_CDMA_DIAL_TONE_LITE, 250);
                 timerTxt.setText(String.valueOf(val--));
                 cdtHolding.start();
                 break;
 
             case READY:
                 if (vibrate) vibrator.vibrate(750);
-                if (context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("beep", true)) {
-                    ToneGenerator tone = new ToneGenerator(AudioManager.STREAM_DTMF, 100);
-                    tone.startTone(ToneGenerator.TONE_CDMA_DIAL_TONE_LITE, 750);
-                }
+                if (beep) tone.startTone(ToneGenerator.TONE_CDMA_DIAL_TONE_LITE, 750);
                 dotLine.clearAnimation();
                 dotLine.setVisibility(View.GONE);
                 timerTxt.setTextColor(Color.WHITE);
