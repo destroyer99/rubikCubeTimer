@@ -17,6 +17,7 @@ import android.os.Vibrator;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -205,13 +206,21 @@ public class UIStateMachine {
         tone = new ToneGenerator(AudioManager.STREAM_DTMF, 100);
 
         cdtWaiting = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "15")) + 1) * 1000, 100) {
+            private long time = 0;
+            private boolean[] beeper = {true, true, true};
             @Override
             public void onTick(long millisUntilFinished) {
-                timerTxt.setText(String.format("%d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished)));
+                time = TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished);
+                timerTxt.setText(String.valueOf(time));
+                if (beep && ((time == 2) || (time == 1) || (time == 0)) && beeper[(int)time]) {
+                  beeper[(int)time] = false;
+                  tone.startTone(ToneGenerator.TONE_CDMA_DIAL_TONE_LITE, 250);
+                }
             }
 
             @Override
             public void onFinish() {
+                if (beep) tone.startTone(ToneGenerator.TONE_DTMF_P, 750);
                 statsTxt.startAnimation(animationBlink);
                 statsTxt.setTextSize(30);
                 statsTxt.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
@@ -225,7 +234,6 @@ public class UIStateMachine {
             public void onTick(long millisUntilFinished) {
                 if (millisUntilFinished < val*1000) {
                     if (vibrate) vibrator.vibrate(250);
-                    if (beep) tone.startTone(ToneGenerator.TONE_CDMA_DIAL_TONE_LITE, 250);
                     timerTxt.setText(String.valueOf(val--));
                 }
             }
@@ -328,6 +336,7 @@ public class UIStateMachine {
                 statsTxt.setText("");
                 btn.setClickable(true);
 
+                btn.setEnabled(true);
                 btn.setStateStart();
                 bkgGlow.setStateStart();
                 btn.refreshDrawableState();
@@ -403,14 +412,12 @@ public class UIStateMachine {
 
                 val = 3;
                 if (vibrate) vibrator.vibrate(250);
-                if (beep) tone.startTone(ToneGenerator.TONE_CDMA_DIAL_TONE_LITE, 250);
                 timerTxt.setText(String.valueOf(val--));
                 cdtHolding.start();
                 break;
 
             case READY:
                 if (vibrate) vibrator.vibrate(750);
-                if (beep) tone.startTone(ToneGenerator.TONE_CDMA_DIAL_TONE_LITE, 750);
                 dotLine.clearAnimation();
                 dotLine.setVisibility(View.GONE);
                 timerTxt.setTextColor(Color.WHITE);
