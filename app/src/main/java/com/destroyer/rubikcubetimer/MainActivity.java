@@ -126,7 +126,7 @@ public class MainActivity extends Activity {
             if (prefs.getBoolean("paidVersion", false)) {
                 // TODO: do paid version stuff
             } else {
-                long appCreatedDate = prefs.getLong("trialVersion", -1);
+                long appCreatedDate = prefs.getLong("trialVersionX", -1L);
 
                 if (appCreatedDate == -1) {
                     // TODO: cannot get pref

@@ -9,7 +9,9 @@ import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
 import android.graphics.Typeface;
+import android.media.AudioFormat;
 import android.media.AudioManager;
+import android.media.AudioTrack;
 import android.media.ToneGenerator;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -38,6 +40,9 @@ public class UIStateMachine {
 
     protected static int STOPPING_TIMEOUT = 500;
     protected static long MONTH_IN_MILLISECONDS = 2592000000L;
+    protected static int FREQ1 = 400;
+    protected static int FREQ2 = 800;
+
 
     protected enum STATES {START, WAITING, HOLDING, READY, RUNNING, STOPPING}
 
@@ -62,6 +67,8 @@ public class UIStateMachine {
 
     private State currentState;
     private List<State> stateList;
+    private AudioTrack audioTrack;
+    private AudioTrack audioTrack2;
 
     private boolean runBool;
     private long millis, val;
@@ -205,6 +212,20 @@ public class UIStateMachine {
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         tone = new ToneGenerator(AudioManager.STREAM_DTMF, 100);
 
+        byte[] generatedTone = generateTone(8000, FREQ1, 0.4);
+        audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+                8000, AudioFormat.CHANNEL_OUT_STEREO,
+                AudioFormat.ENCODING_PCM_16BIT, generatedTone.length,
+                AudioTrack.MODE_STATIC);
+        audioTrack.write(generatedTone, 0, generatedTone.length);
+
+        byte[] generatedTone2 = generateTone(8000, FREQ2, 0.8);
+        audioTrack2 = new AudioTrack(AudioManager.STREAM_MUSIC,
+                8000, AudioFormat.CHANNEL_OUT_STEREO,
+                AudioFormat.ENCODING_PCM_16BIT, generatedTone2.length,
+                AudioTrack.MODE_STATIC);
+        audioTrack2.write(generatedTone2, 0, generatedTone2.length);
+
         cdtWaiting = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "15")) + 1) * 1000, 100) {
             private long time = 0;
             private boolean[] beeper = {true, true, true};
@@ -212,15 +233,26 @@ public class UIStateMachine {
             public void onTick(long millisUntilFinished) {
                 time = TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished);
                 timerTxt.setText(String.valueOf(time));
-                if (beep && ((time == 2) || (time == 1) || (time == 0)) && beeper[(int)time]) {
-                  beeper[(int)time] = false;
-                  tone.startTone(ToneGenerator.TONE_CDMA_DIAL_TONE_LITE, 250);
+                if (beep && ((time == 3) || (time == 2) || (time == 1)) && beeper[(int)time-1]) {
+                  beeper[(int)time-1] = false;
+                    audioTrack.stop();
+                    audioTrack.reloadStaticData();
+                    audioTrack.play();
+//                  tone.startTone(ToneGenerator.TONE_CDMA_DIAL_TONE_LITE, 250);
+                } else if(beep && time == 0 && !beeper[0] && !beeper[1] && !beeper[2]){
+                    audioTrack2.stop();
+                    audioTrack2.reloadStaticData();
+                    audioTrack2.play();
+                    beeper[0]=true;
+                    beeper[1]=true;
+                    beeper[2]=true;
                 }
+
             }
 
             @Override
             public void onFinish() {
-                if (beep) tone.startTone(ToneGenerator.TONE_DTMF_P, 750);
+//                if (beep) tone.startTone(ToneGenerator.TONE_DTMF_P, 750);
                 statsTxt.startAnimation(animationBlink);
                 statsTxt.setTextSize(30);
                 statsTxt.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
@@ -466,6 +498,25 @@ public class UIStateMachine {
 
     private static Bitmap getScaledBitmap(Bitmap b, float reqWidth) {
         return Bitmap.createScaledBitmap(b, (int)reqWidth, (int)((float)b.getHeight() * reqWidth / (float)b.getWidth() ), true);
+    }
+
+    private byte[] generateTone(int sampleRate, int freq, double duration){
+        final int numSamples = (int)(duration * sampleRate);
+        final double sample[] = new double[numSamples];
+        final byte generatedTone[] = new byte[2 * numSamples];
+
+        for (int i = 0; i < numSamples; ++i) {
+            sample[i] = Math.sin(2 * Math.PI * i / (sampleRate /freq));
+        }
+
+        int idx = 0;
+        for (final double dVal : sample) {
+            final short val = (short) ((dVal * 32767));
+            generatedTone[idx++] = (byte) (val & 0x00ff);
+            generatedTone[idx++] = (byte) ((val & 0xff00) >>> 8);
+        }
+
+        return generatedTone;
     }
 
     private void getFontFromPreference(TextView textView){
