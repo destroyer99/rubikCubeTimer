@@ -106,6 +106,15 @@ public class SettingsActivity extends PreferenceActivity {
                 return false;
             }
         });
+
+        findPreference("paidVersionSet").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                prefEditor.putBoolean("paidVersion", true).commit();
+                return false;
+            }
+        });
     }
 
     @Override

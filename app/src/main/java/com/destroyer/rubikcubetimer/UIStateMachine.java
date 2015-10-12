@@ -234,7 +234,7 @@ public class UIStateMachine {
                 time = TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished);
                 timerTxt.setText(String.valueOf(time));
                 if (beep && ((time == 3) || (time == 2) || (time == 1)) && beeper[(int)time-1]) {
-                  beeper[(int)time-1] = false;
+                    beeper[(int)time-1] = false;
                     audioTrack.stop();
                     audioTrack.reloadStaticData();
                     audioTrack.play();
@@ -617,10 +617,10 @@ public class UIStateMachine {
 
             bestTxt.setText("Best: " + (cursor.getCount() > 0 ? formatString(best) : "--:--"));
             worstTxt.setText("Worst: " + (cursor.getCount() > 0 ? formatString(worst) : "--:--"));
-            last5Txt.setText("Avg Last 5: " + (cursor.getCount() > 5 ? formatString(avg5) : "--:--"));
-            last12Txt.setText("Avg Last 12: " + (cursor.getCount() > 12 ? formatString(avg12) : "--:--"));
-            last25Txt.setText("Avg Last 25: " + (cursor.getCount() > 25 ? formatString(avg25) : "--:--"));
-            last50Txt.setText("Avg Last 50: " + (cursor.getCount() > 50 ? formatString(avg50) : "--:--"));
+            last5Txt.setText("Avg Last 5: " + (cursor.getCount() >= 5 ? formatString(avg5) : "--:--"));
+            last12Txt.setText("Avg Last 12: " + (cursor.getCount() >= 12 ? formatString(avg12) : "--:--"));
+            last25Txt.setText("Avg Last 25: " + (cursor.getCount() >= 25 ? formatString(avg25) : "--:--"));
+            last50Txt.setText("Avg Last 50: " + (cursor.getCount() >= 50 ? formatString(avg50) : "--:--"));
             lastTimeTxt.setText("Last Time: " + (cursor.moveToFirst() ? formatString(cursor.getInt(2)) : "--:--"));
 
             if ((cursor = db.getAllByMonth(String.valueOf(System.currentTimeMillis()-MONTH_IN_MILLISECONDS))) != null && cursor.moveToFirst()){

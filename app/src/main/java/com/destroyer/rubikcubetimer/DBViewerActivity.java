@@ -42,7 +42,7 @@ public class DBViewerActivity extends Activity {
             public boolean onItemLongClick(AdapterView<?> parent, final View view, int position, long id) {
                 new AlertDialog.Builder(context)
                         .setTitle("Confirm")
-                        .setMessage("Are you sure you want to delete this ad from the web server?")
+                        .setMessage("Are you sure you want to delete this score?")
                         .setCancelable(false)
                         .setNegativeButton("No", new DialogInterface.OnClickListener() {
                             public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
@@ -82,6 +82,8 @@ public class DBViewerActivity extends Activity {
                 } while (cursor.moveToNext());
             } else Log.wtf("TIME_LIST", "EMPTY");
             listView.setAdapter(new TimeListAdapter(this, R.layout.time_layout, timeItems));
+        } else {
+            listView.setAdapter(null);
         }
         db.close();
     }

@@ -36,7 +36,8 @@
             android:textStyle="bold"
             android:textColor="#ffffffff"
             android:layout_weight=".5"
-            android:text="D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos;" />
+            android:text="D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos; D2&apos;"
+            android:minLines="2" />
 
         <Space
             android:layout_width="match_parent"

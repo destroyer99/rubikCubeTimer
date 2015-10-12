@@ -6,7 +6,7 @@
         <SwitchPreference
             android:title="Vibration"
             android:key="vibrate"
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:summary="Vibrate on count down"
             android:summaryOn="On"
             android:summaryOff="Off" />
@@ -14,7 +14,7 @@
         <SwitchPreference
             android:title="Beep"
             android:key="beep"
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:summary="Beep on count down"
             android:summaryOn="On"
             android:summaryOff="Off" />
@@ -75,10 +75,15 @@
             android:summaryOn="On"
             android:summaryOff="Off" />
 
+        <Preference
+            android:title="Set As Paid Version"
+            android:key="paidVersionSet"
+            android:summary="Set as paid version" />
+
         <SwitchPreference
             android:title="Reset Paid Version"
             android:key="paidVersionReset"
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:summary="Reset paid version on startup"
             android:summaryOn="Yes"
             android:summaryOff="No" />

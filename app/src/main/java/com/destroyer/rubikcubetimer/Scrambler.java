@@ -27,8 +27,7 @@ public class Scrambler {
     /**
      * Possible directions of a face turn
      */
-    private static final String[] rotation = { "", "'", "2" };
-
+    private static final String[] rotation = { "", "'", "", "'", "2" }; // added duplicates to decrease probability of '2' turns
 
     /**
      * Generates a random 25 move scramble
