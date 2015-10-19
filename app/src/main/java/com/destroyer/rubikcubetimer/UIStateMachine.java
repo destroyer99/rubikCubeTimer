@@ -315,6 +315,7 @@ public class UIStateMachine {
         vibrate = context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("vibrate", true);
         beep = context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("beep", true);
         setCurrentState(stateList.get(STATES.START.ordinal()), null);
+        btn.setClickable(true);
     }
 
     /*
