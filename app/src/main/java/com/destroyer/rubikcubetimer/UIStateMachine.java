@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.destroyer.rubikcubetimer.DBAdapter.DB_KEYS;
+
 /*TODO:
 
  */
@@ -586,7 +588,7 @@ public class UIStateMachine {
     Cursor cursor;
     if ((cursor = db.getAllTimes()) != null && cursor.moveToFirst()) {
       do {
-        val = cursor.getInt(2);
+        val = cursor.getInt(DB_KEYS.KEY_SOLVE_TIME.ordinal());
         if (cursor.getPosition() < 5) avg5 += val;
         if (cursor.getPosition() < 12) avg12 += val;
         if (cursor.getPosition() < 25) avg25 += val;
@@ -607,11 +609,11 @@ public class UIStateMachine {
       last12Txt.setText("Avg Last 12: " + (cursor.getCount() >= 12 ? formatString(avg12) : "--:--"));
       last25Txt.setText("Avg Last 25: " + (cursor.getCount() >= 25 ? formatString(avg25) : "--:--"));
       last50Txt.setText("Avg Last 50: " + (cursor.getCount() >= 50 ? formatString(avg50) : "--:--"));
-      lastTimeTxt.setText("Last Time: " + (cursor.moveToFirst() ? formatString(cursor.getInt(2)) : "--:--"));
+      lastTimeTxt.setText("Last Time: " + (cursor.moveToFirst() ? formatString(cursor.getInt(DB_KEYS.KEY_SOLVE_TIME.ordinal())) : "--:--"));
 
       if ((cursor = db.getAllByMonth(String.valueOf(System.currentTimeMillis() - MONTH_IN_MILLISECONDS))) != null && cursor.moveToFirst()) {
         do {
-          avgMonth += cursor.getInt(2);
+          avgMonth += cursor.getInt(DB_KEYS.KEY_SOLVE_TIME.ordinal());
         } while (cursor.moveToNext());
 
         avgMonth = avgMonth / cursor.getCount();
