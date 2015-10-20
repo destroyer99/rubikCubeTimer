@@ -25,7 +25,12 @@ public class SettingsActivity extends PreferenceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        
         getPreferenceManager().setSharedPreferencesName("appPreferences");
         addPreferencesFromResource(R.xml.activity_settings);
         prefEditor = getSharedPreferences("appPreferences", MODE_PRIVATE).edit();
