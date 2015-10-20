@@ -12,45 +12,45 @@ import java.text.DateFormat;
 
 public class TimeListAdapter extends ArrayAdapter<TimeItem> {
 
-    Context context;
-    int layoutResourceId;
-    TimeItem[] timeItems;
+  Context context;
+  int layoutResourceId;
+  TimeItem[] timeItems;
 
-    public TimeListAdapter(Context context, int layoutResourceId, TimeItem[] timeItems) {
-        super(context, layoutResourceId, timeItems);
-        this.context = context;
-        this.layoutResourceId = layoutResourceId;
-        this.timeItems = timeItems;
+  public TimeListAdapter(Context context, int layoutResourceId, TimeItem[] timeItems) {
+    super(context, layoutResourceId, timeItems);
+    this.context = context;
+    this.layoutResourceId = layoutResourceId;
+    this.timeItems = timeItems;
+  }
+
+  @Override
+  public View getView(int position, View convertView, ViewGroup parent) {
+
+    if (convertView == null) {
+      LayoutInflater inflater = ((Activity) context).getLayoutInflater();
+      convertView = inflater.inflate(layoutResourceId, parent, false);
     }
 
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    convertView.setTag(timeItems[position].getId());
+    ((TextView) convertView.findViewById(R.id.dateTxt)).setText(formatDate(timeItems[position].getDate()));
+    ((TextView) convertView.findViewById(R.id.timeTxt)).setText(formatTime(timeItems[position].getTime()));
 
-        if (convertView == null) {
-            LayoutInflater inflater = ((Activity) context).getLayoutInflater();
-            convertView = inflater.inflate(layoutResourceId, parent, false);
-        }
+    return convertView;
+  }
 
-        convertView.setTag(timeItems[position].getId());
-        ((TextView)convertView.findViewById(R.id.dateTxt)).setText(formatDate(timeItems[position].getDate()));
-        ((TextView)convertView.findViewById(R.id.timeTxt)).setText(formatTime(timeItems[position].getTime()));
+  private String formatDate(long date) {
+    return DateFormat.getDateTimeInstance().format(date);
+  }
 
-        return convertView;
-    }
-
-    private String formatDate(long date) {
-        return DateFormat.getDateTimeInstance().format(date);
-    }
-
-    private String formatTime(long millis) {
-        return ((millis / (1000 * 60)) > 0 ?
-                String.format("%d:%02d:%02d",
-                        (millis / (1000 * 60)),
-                        ((millis / 1000) % 60),
-                        ((millis / 10) % 100))
-                :
-                String.format("%02d:%02d",
-                        ((millis / 1000) % 60),
-                        ((millis / 10) % 100)));
-    }
+  private String formatTime(long millis) {
+    return ((millis / (1000 * 60)) > 0 ?
+        String.format("%d:%02d:%02d",
+            (millis / (1000 * 60)),
+            ((millis / 1000) % 60),
+            ((millis / 10) % 100))
+        :
+        String.format("%02d:%02d",
+            ((millis / 1000) % 60),
+            ((millis / 10) % 100)));
+  }
 }
