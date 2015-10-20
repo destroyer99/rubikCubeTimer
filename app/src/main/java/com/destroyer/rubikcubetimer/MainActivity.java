@@ -26,6 +26,7 @@ import android.widget.Toast;
 /* TODO:
  * audio jack pwm sender/reader
  * ads
+ * fix gyro auto calibration (buggy on S4)
  */
 
 public class MainActivity extends Activity {

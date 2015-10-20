@@ -10,20 +10,25 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.CountDownTimer;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class GyroCalibrationActivity extends Activity {
 
     private static final float[] gyroBuffer = {2f, 2f, 1.5f};
 
     private int val = 10;
+    private float[] gyroLast = {0, 0, 0};
     private float[] gyroVal = {0, 0, 0};
+    private static final float[] gyroThreshold = {0.1f, 0.1f, 0.1f};
     private long sensorCount = 0;
+    private boolean gyroSettleTimeout = false;
 
     private CountDownTimer cdt;
     private SharedPreferences.Editor prefEditor;
@@ -59,6 +64,12 @@ public class GyroCalibrationActivity extends Activity {
             public void onClick(View v) {
                 if (((Button)v).getText().equals("Start")) {
                     mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_FASTEST);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            gyroSettleTimeout = true;
+                        }
+                    }, 250);
                     btnStartSave.setText("Save");
                     btnStartSave.setEnabled(false);
                     cdt.start();
@@ -83,6 +94,7 @@ public class GyroCalibrationActivity extends Activity {
                 mSensorManager.unregisterListener(mSensorListener);
                 txtView.setText("Complete!");
                 btnStartSave.setEnabled(true);
+                gyroSettleTimeout = false;
                 Log.wtf("CALIBRATION_RESULTS", "[0]:" + gyroVal[0] / sensorCount);
                 Log.wtf("CALIBRATION_RESULTS", "[1]:" + gyroVal[1] / sensorCount);
                 Log.wtf("CALIBRATION_RESULTS", "[2]:" + gyroVal[2] / sensorCount);
@@ -93,8 +105,10 @@ public class GyroCalibrationActivity extends Activity {
 
     private final SensorEventListener mSensorListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent event) {
-            if(event.sensor.getType()==Sensor.TYPE_GYROSCOPE) {
-                if (event.values[0] > 0.05 ||event.values[1] > 0.05 ||event.values[2] > 0.05) {
+            if(event.sensor.getType()==Sensor.TYPE_GYROSCOPE && gyroSettleTimeout) {
+                if (Math.abs(event.values[0]) - gyroLast[0] > gyroThreshold[0] ||
+                        Math.abs(event.values[1]) - gyroLast[1] > gyroThreshold[1] ||
+                        Math.abs(event.values[2]) - gyroLast[2] > gyroThreshold[2]) {
                     Log.wtf("GYRO_CALIBRATE", "Device not still enough to calibrate");
                     val = 10;
                     txtView.setText("KEEP DEVICE STILL!!\nLeave still for " + String.valueOf(val) + " seconds");
@@ -105,15 +119,14 @@ public class GyroCalibrationActivity extends Activity {
                     gyroVal[2] = 0;
                     cdt.cancel();
                     mSensorManager.unregisterListener(mSensorListener);
-//                    btnCancel.performClick();
+                    gyroSettleTimeout = false;
+                } else {
+                    gyroVal[0] += gyroLast[0] = Math.abs(event.values[0]);
+                    gyroVal[1] += gyroLast[1] = Math.abs(event.values[1]);
+                    gyroVal[2] += gyroLast[2] = Math.abs(event.values[2]);
+                    sensorCount++;
                 }
-
-                gyroVal[0] += Math.abs(event.values[0]);
-                gyroVal[1] += Math.abs(event.values[1]);
-                gyroVal[2] += Math.abs(event.values[2]);
-                sensorCount++;
             }
-
         }
 
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
