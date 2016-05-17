@@ -125,12 +125,16 @@ public class MainActivity extends Activity {
     } else {
       if (prefs.getBoolean("paidVersion", false)) {
         // TODO: do paid version stuff
+        Log.d("VERSION", "PAID");
       } else {
+        Log.d("VERSION", "TRIAL");
         long appCreatedDate = prefs.getLong("trialVersionX", -1L);
 
         if (appCreatedDate == -1) {
           // TODO: cannot get pref
+          Log.d("TRIAL_PERIOD", "cannot get pref");
         } else if ((System.currentTimeMillis() - appCreatedDate) < WEEK_IN_MILLISECONDS) {
+          Log.d("TRIAL_PERIOD", "less than week");
           long millisLeft = (WEEK_IN_MILLISECONDS - (System.currentTimeMillis() - appCreatedDate));
           new AlertDialog.Builder(this)
               .setTitle("Trial Version")
@@ -142,6 +146,7 @@ public class MainActivity extends Activity {
                 }
               }).show();
         } else {
+          Log.d("TRIAL_PERIOD", "expired");
           new AlertDialog.Builder(this)
               .setTitle("Trial Version")
               .setMessage("Trial Version Expired, give us your money")

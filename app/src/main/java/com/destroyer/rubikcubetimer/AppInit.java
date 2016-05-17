@@ -51,7 +51,8 @@ public class AppInit extends android.app.Application {
                     // find matching device ID
                     for (ParseObject obj : list) {
                       if (obj.getString("deviceId").equals(((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId())) {
-                        sharedPrefs.edit().putLong("trialVersion", obj.getLong("millis")).apply();
+                        sharedPrefs.edit().putLong("trialVersionX", obj.getLong("millis")).apply();
+                        Log.d("PARSE", "found device {" + obj.getString("deviceId") + "} in cloud DB");
                         return;
                       }
                     }
@@ -63,7 +64,7 @@ public class AppInit extends android.app.Application {
                     trialVersion.put("deviceId", ((TelephonyManager) getSystemService(TELEPHONY_SERVICE)).getDeviceId());
                     trialVersion.put("millis", millis);
                     trialVersion.saveInBackground();
-                    sharedPrefs.edit().putLong("trialVersion", millis).apply();
+                    sharedPrefs.edit().putLong("trialVersionX", millis).apply();
                     Log.d("PARSE", "added device to cloud DB");
                   }
                 } else {
