@@ -4,7 +4,8 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
-public class CustomImageView extends ImageView {
+public class CustomImageView extends ImageView
+{
 
   private static final int[] STATE_START = {R.attr.state_start};
   private static final int[] STATE_CDT = {R.attr.state_cdt};
@@ -24,22 +25,26 @@ public class CustomImageView extends ImageView {
   private boolean mIsStopping = false;
   private boolean mIsFinished = false;
 
-  public CustomImageView(Context context) {
+  public CustomImageView(Context context)
+  {
     super(context);
     this.mIsStart = true;
   }
 
-  public CustomImageView(Context context, AttributeSet attrs) {
+  public CustomImageView(Context context, AttributeSet attrs)
+  {
     super(context, attrs);
     this.mIsStart = true;
   }
 
-  public CustomImageView(Context context, AttributeSet attrs, int defStyle) {
+  public CustomImageView(Context context, AttributeSet attrs, int defStyle)
+  {
     super(context, attrs, defStyle);
     this.mIsStart = true;
   }
 
-  public void setStateStart() {
+  public void setStateStart()
+  {
     this.mIsStart = true;
     this.mIsCDT = false;
     this.mIsWaiting = false;
@@ -50,7 +55,8 @@ public class CustomImageView extends ImageView {
     this.mIsFinished = false;
   }
 
-  public void setStateCDT() {
+  public void setStateCDT()
+  {
     this.mIsStart = false;
     this.mIsCDT = true;
     this.mIsWaiting = false;
@@ -61,7 +67,8 @@ public class CustomImageView extends ImageView {
     this.mIsFinished = false;
   }
 
-  public void setStateWaiting() {
+  public void setStateWaiting()
+  {
     this.mIsStart = false;
     this.mIsCDT = false;
     this.mIsWaiting = true;
@@ -72,7 +79,8 @@ public class CustomImageView extends ImageView {
     this.mIsFinished = false;
   }
 
-  public void setStateHolding() {
+  public void setStateHolding()
+  {
     this.mIsStart = false;
     this.mIsCDT = false;
     this.mIsWaiting = false;
@@ -83,7 +91,8 @@ public class CustomImageView extends ImageView {
     this.mIsFinished = false;
   }
 
-  public void setStateReady() {
+  public void setStateReady()
+  {
     this.mIsStart = false;
     this.mIsCDT = false;
     this.mIsWaiting = false;
@@ -94,7 +103,8 @@ public class CustomImageView extends ImageView {
     this.mIsFinished = false;
   }
 
-  public void setStateRunning() {
+  public void setStateRunning()
+  {
     this.mIsStart = false;
     this.mIsCDT = false;
     this.mIsWaiting = false;
@@ -105,7 +115,8 @@ public class CustomImageView extends ImageView {
     this.mIsFinished = false;
   }
 
-  public void setStateStopping() {
+  public void setStateStopping()
+  {
     this.mIsStart = false;
     this.mIsCDT = false;
     this.mIsWaiting = false;
@@ -116,7 +127,8 @@ public class CustomImageView extends ImageView {
     this.mIsFinished = false;
   }
 
-  public void setStateFinished() {
+  public void setStateFinished()
+  {
     this.mIsStart = false;
     this.mIsCDT = false;
     this.mIsWaiting = false;
@@ -128,30 +140,39 @@ public class CustomImageView extends ImageView {
   }
 
   @Override
-  public int[] onCreateDrawableState(int extraSpace) {
+  public int[] onCreateDrawableState(int extraSpace)
+  {
     final int[] drawableState = super.onCreateDrawableState(extraSpace + 2);
-    if (mIsStart) {
+    if (mIsStart)
+    {
       mergeDrawableStates(drawableState, STATE_START);
     }
-    if (mIsCDT) {
+    if (mIsCDT)
+    {
       mergeDrawableStates(drawableState, STATE_CDT);
     }
-    if (mIsWaiting) {
+    if (mIsWaiting)
+    {
       mergeDrawableStates(drawableState, STATE_WAITING);
     }
-    if (mIsHolding) {
+    if (mIsHolding)
+    {
       mergeDrawableStates(drawableState, STATE_HOLDING);
     }
-    if (mIsReady) {
+    if (mIsReady)
+    {
       mergeDrawableStates(drawableState, STATE_READY);
     }
-    if (mIsRunning) {
+    if (mIsRunning)
+    {
       mergeDrawableStates(drawableState, STATE_RUNNING);
     }
-    if (mIsStopping) {
+    if (mIsStopping)
+    {
       mergeDrawableStates(drawableState, STATE_STOPPING);
     }
-    if (mIsFinished) {
+    if (mIsFinished)
+    {
       mergeDrawableStates(drawableState, STATE_FINISHED);
     }
     return drawableState;

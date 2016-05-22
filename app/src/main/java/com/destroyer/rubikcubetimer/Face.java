@@ -8,7 +8,8 @@ package com.destroyer.rubikcubetimer;
  * @author Elliot Penson
  */
 
-public class Face {
+public class Face
+{
 
   /**
    * R, L, U, D, F, or B
@@ -23,7 +24,8 @@ public class Face {
   /**
    * Blank constructor
    */
-  public Face() {
+  public Face()
+  {
   }
 
   /**
@@ -32,7 +34,8 @@ public class Face {
    * @param side
    * @param axis
    */
-  public Face(char side, char axis) {
+  public Face(char side, char axis)
+  {
     this.side = side;
     this.axis = axis;
   }
@@ -40,14 +43,16 @@ public class Face {
   /**
    * Provides the side this face is on
    */
-  public char getSide() {
+  public char getSide()
+  {
     return side;
   }
 
   /**
    * Provides the axis of this face
    */
-  public char getAxis() {
+  public char getAxis()
+  {
     return axis;
   }
 
@@ -56,7 +61,8 @@ public class Face {
    *
    * @param other
    */
-  public boolean sameFace(Face other) {
+  public boolean sameFace(Face other)
+  {
     if (other.getSide() == side)
       return true;
     return false;

@@ -23,20 +23,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.destroyer.rubikcubetimer.DBAdapter.DB_KEYS;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.destroyer.rubikcubetimer.DBAdapter.DB_KEYS;
-
 /*TODO:
 
  */
 
-public class UIStateMachine {
+public class UIStateMachine
+{
 
   protected static int STOPPING_TIMEOUT = 500;
   protected static long MONTH_IN_MILLISECONDS = 2592000000L;
@@ -65,6 +67,7 @@ public class UIStateMachine {
   private float displayHeight;
   private CustomImageView bkgGlow;
   private CustomImageButton btn;
+  private ImageButton settingsBtn;
   private ImageView dotLine;
   private ImageView cube;
   private TextView statsTxt;
@@ -85,10 +88,13 @@ public class UIStateMachine {
   private boolean runBool;
   private long millis, val;
   private int timerPrecision;
-  private final Runnable timer = new Runnable() {
+  private final Runnable timer = new Runnable()
+  {
     @Override
-    public void run() {
-      if (runBool) {
+    public void run()
+    {
+      if (runBool)
+      {
         millis = System.currentTimeMillis() - val;
         timerTxt.setText(formatString(millis));
         if (runBool) new Handler().postDelayed(this, timerPrecision);
@@ -102,22 +108,28 @@ public class UIStateMachine {
   private ToneGenerator tone;
   private Animation animationFadeOut, animationFadeIn, animationBlink, animationFadeOutComplete, animationFadeInComplete;
   private Handler handler = new Handler();
-  private Runnable saveDialog = new Runnable() {
+  private Runnable saveDialog = new Runnable()
+  {
     @Override
-    public void run() {
+    public void run()
+    {
       final AlertDialog alertDialog = new AlertDialog.Builder(context)
           .setTitle("Save Score")
           .setMessage("Save score to Database?\t\t" + formatString(millis))
           .setCancelable(true)
-          .setNegativeButton("No", new DialogInterface.OnClickListener() {
-            public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+          .setNegativeButton("No", new DialogInterface.OnClickListener()
+          {
+            public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id)
+            {
               cdtSaving.cancel();
               nextState();
               dialog.cancel();
             }
           })
-          .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+          .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+          {
+            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id)
+            {
               DBAdapter db = new DBAdapter(context);
               db.open();
               db.addTime(System.currentTimeMillis(), millis, 0, scrambleTxt.getText().toString());
@@ -129,16 +141,20 @@ public class UIStateMachine {
           }).create();
 
       val = 4; // time for cdt on auto save
-      cdtSaving = new CountDownTimer(val * 1000, 100) {
+      cdtSaving = new CountDownTimer(val * 1000, 100)
+      {
         @Override
-        public void onTick(long millisUntilFinished) {
-          if (millisUntilFinished < val * 1000) {
+        public void onTick(long millisUntilFinished)
+        {
+          if (millisUntilFinished < val * 1000)
+          {
             alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setText("Yes (" + --val + ")");
           }
         }
 
         @Override
-        public void onFinish() {
+        public void onFinish()
+        {
           alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         }
       };
@@ -148,7 +164,8 @@ public class UIStateMachine {
     }
   };
 
-  public UIStateMachine(Context ctx, float displayHeight, View... views) {
+  public UIStateMachine(Context ctx, float displayHeight, View... views)
+  {
     this.context = ctx;
     this.displayHeight = displayHeight;
     this.bkgGlow = (CustomImageView) views[0];
@@ -166,6 +183,7 @@ public class UIStateMachine {
     this.monthTxt = (TextView) views[12];
     this.lastTimeTxt = (TextView) views[13];
     this.scrambleTxt = (TextView) views[14];
+    this.settingsBtn = (ImageButton) views[15];
 
     animationFadeIn = AnimationUtils.loadAnimation(context, R.anim.fadein);
     animationFadeOut = AnimationUtils.loadAnimation(context, R.anim.fadeout);
@@ -212,21 +230,26 @@ public class UIStateMachine {
         AudioTrack.MODE_STATIC);
     audioTrack2.write(generatedTone2, 0, generatedTone2.length);
 
-    cdtWaiting = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "15")) + 1) * 1000, 100) {
+    cdtWaiting = new CountDownTimer((Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("cdtTime", "15")) + 1) * 1000, 100)
+    {
       private long time = 0;
       private boolean[] beeper = {true, true, true};
 
       @Override
-      public void onTick(long millisUntilFinished) {
+      public void onTick(long millisUntilFinished)
+      {
         time = TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished);
         timerTxt.setText(String.valueOf(time));
-        if (beep && ((time == 3) || (time == 2) || (time == 1)) && beeper[(int) time - 1]) {
+        if (beep && ((time == 3) || (time == 2) || (time == 1)) && beeper[(int) time - 1])
+        {
           beeper[(int) time - 1] = false;
           audioTrack.stop();
           audioTrack.reloadStaticData();
           audioTrack.play();
 //                  tone.startTone(ToneGenerator.TONE_CDMA_DIAL_TONE_LITE, 250);
-        } else if (beep && time == 0 && !beeper[0] && !beeper[1] && !beeper[2]) {
+        }
+        else if (beep && time == 0 && !beeper[0] && !beeper[1] && !beeper[2])
+        {
           audioTrack2.stop();
           audioTrack2.reloadStaticData();
           audioTrack2.play();
@@ -238,7 +261,8 @@ public class UIStateMachine {
       }
 
       @Override
-      public void onFinish() {
+      public void onFinish()
+      {
 //                if (beep) tone.startTone(ToneGenerator.TONE_DTMF_P, 750);
         statsTxt.startAnimation(animationBlink);
         statsTxt.setTextSize(30);
@@ -248,17 +272,21 @@ public class UIStateMachine {
       }
     };
 
-    cdtHolding = new CountDownTimer(3000, 100) {
+    cdtHolding = new CountDownTimer(3000, 100)
+    {
       @Override
-      public void onTick(long millisUntilFinished) {
-        if (millisUntilFinished < val * 1000) {
+      public void onTick(long millisUntilFinished)
+      {
+        if (millisUntilFinished < val * 1000)
+        {
           if (vibrate) vibrator.vibrate(250);
           timerTxt.setText(String.valueOf(val--));
         }
       }
 
       @Override
-      public void onFinish() {
+      public void onFinish()
+      {
         nextState();
       }
     };
@@ -273,18 +301,21 @@ public class UIStateMachine {
     stateList.add(STATES.STOPPING.ordinal(), new State(STATES.STOPPING, STATES.START, R.drawable.glow_finished, R.drawable.btn_finished));
   }
 
-  private static Bitmap getScaledBitmap(Bitmap b, float reqWidth) {
+  private static Bitmap getScaledBitmap(Bitmap b, float reqWidth)
+  {
     return Bitmap.createScaledBitmap(b, (int) reqWidth, (int) ((float) b.getHeight() * reqWidth / (float) b.getWidth()), true);
   }
 
   /*
       Stops the HOLDING state from proceeding and should return the state to WAITING
    */
-  public void haltProcess() {
+  public void haltProcess()
+  {
     cdtWaiting.cancel();
     cdtHolding.cancel();
     runBool = false;
-    if (handler != null) {
+    if (handler != null)
+    {
       handler.removeCallbacks(saveDialog);
     }
   }
@@ -292,14 +323,16 @@ public class UIStateMachine {
   /*
       create state and add it to the stateList
    */
-  public void addState(STATES state, STATES nextState, int bkgGlow, int btnBkg) {
+  public void addState(STATES state, STATES nextState, int bkgGlow, int btnBkg)
+  {
     stateList.add(state.ordinal(), new State(state, nextState.ordinal(), bkgGlow, btnBkg));
   }
 
   /*
       reset currentState to START (or whatever the first defined state is)
    */
-  public void resetState() {
+  public void resetState()
+  {
     haltProcess();
     timerTxt.clearAnimation();
     timerPrecision = Integer.valueOf(context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("timerPrecision", "21"));
@@ -312,21 +345,24 @@ public class UIStateMachine {
   /*
       get the current state of the stateMachine
    */
-  public STATES getState() {
+  public STATES getState()
+  {
     return currentState.state;
   }
 
   /*
       public call to explicitly set the currentState
    */
-  public void setState(STATES state) {
+  public void setState(STATES state)
+  {
     setCurrentState(stateList.get(state.ordinal()), currentState);
   }
 
   /*
       public call to execute stateMachine to next state
    */
-  public void nextState() {
+  public void nextState()
+  {
     setCurrentState(stateList.get(currentState.nextState), currentState);
   }
 
@@ -334,9 +370,11 @@ public class UIStateMachine {
       stateMachine Core
       defines actions for each state
    */
-  private void setCurrentState(final State state, final State previousState) {
+  private void setCurrentState(final State state, final State previousState)
+  {
     currentState = state;
-    switch (currentState.state) {
+    switch (currentState.state)
+    {
       case START:
         dotLine.clearAnimation();
         cube.startAnimation(animationFadeIn);
@@ -356,6 +394,7 @@ public class UIStateMachine {
         timerTxt.setText("");
         dotLine.setVisibility(View.GONE);
         cube.setVisibility(View.VISIBLE);
+        settingsBtn.setVisibility(View.VISIBLE);
         statsTxt.clearAnimation();
         statsTxt.setText("");
         btn.setClickable(true);
@@ -381,10 +420,12 @@ public class UIStateMachine {
         lastTimeTxt.setText("");
 
         scrambleTxt.setVisibility(View.INVISIBLE);
+        settingsBtn.setVisibility(View.GONE);
         cdtHolding.cancel();
         cdtWaiting.cancel();
         timerTxt.setText("");
-        if (previousState.state == STATES.START) {
+        if (previousState.state == STATES.START)
+        {
           cube.startAnimation(animationFadeOut);
           statsTxt.startAnimation(animationFadeInComplete);
           dotLine.startAnimation(animationFadeInComplete);
@@ -392,14 +433,19 @@ public class UIStateMachine {
           timerTxt.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/HemiHead426.otf"));
           timerTxt.setTextSize(100);
 
-          if (context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("cdt", true)) {
+          if (context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getBoolean("cdt", true))
+          {
             timerTxt.setTextColor(Color.RED);
             cdtWaiting.start();
-          } else {
+          }
+          else
+          {
             timerTxt.setText("");
             statsTxt.startAnimation(animationBlink);
           }
-        } else {
+        }
+        else
+        {
           statsTxt.startAnimation(animationBlink);
           timerTxt.setText("");
         }
@@ -488,17 +534,20 @@ public class UIStateMachine {
     }
   }
 
-  private byte[] generateTone(int sampleRate, int freq, double duration) {
+  private byte[] generateTone(int sampleRate, int freq, double duration)
+  {
     final int numSamples = (int) (duration * sampleRate);
     final double sample[] = new double[numSamples];
     final byte generatedTone[] = new byte[2 * numSamples];
 
-    for (int i = 0; i < numSamples; ++i) {
+    for (int i = 0; i < numSamples; ++i)
+    {
       sample[i] = Math.sin(2 * Math.PI * i / (sampleRate / freq));
     }
 
     int idx = 0;
-    for (final double dVal : sample) {
+    for (final double dVal : sample)
+    {
       final short val = (short) ((dVal * 32767));
       generatedTone[idx++] = (byte) (val & 0x00ff);
       generatedTone[idx++] = (byte) ((val & 0xff00) >>> 8);
@@ -507,8 +556,10 @@ public class UIStateMachine {
     return generatedTone;
   }
 
-  private void getFontFromPreference(TextView textView) {
-    switch (context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("timerFont", "atomic")) {
+  private void getFontFromPreference(TextView textView)
+  {
+    switch (context.getSharedPreferences("appPreferences", Context.MODE_PRIVATE).getString("timerFont", "atomic"))
+    {
       case "atomic":
         textView.setTypeface(Typeface.createFromAsset(context.getAssets(), "fonts/ATOMICCLOCKRADIO.otf"));
         textView.setTextSize(48);
@@ -581,13 +632,16 @@ public class UIStateMachine {
     }
   }
 
-  private void updateStats() {
+  private void updateStats()
+  {
     int avg5 = 0, avg12 = 0, avg25 = 0, avg50 = 0, avgMonth = 0, best = Integer.MAX_VALUE, worst = Integer.MIN_VALUE, val;
     DBAdapter db = new DBAdapter(context);
     db.open();
     Cursor cursor;
-    if ((cursor = db.getAllTimes()) != null && cursor.moveToFirst()) {
-      do {
+    if ((cursor = db.getAllTimes()) != null && cursor.moveToFirst())
+    {
+      do
+      {
         val = cursor.getInt(DB_KEYS.KEY_SOLVE_TIME.ordinal());
         if (cursor.getPosition() < 5) avg5 += val;
         if (cursor.getPosition() < 12) avg12 += val;
@@ -611,15 +665,19 @@ public class UIStateMachine {
       last50Txt.setText("Avg Last 50: " + (cursor.getCount() >= 50 ? formatString(avg50) : "--:--"));
       lastTimeTxt.setText("Last Time: " + (cursor.moveToFirst() ? formatString(cursor.getInt(DB_KEYS.KEY_SOLVE_TIME.ordinal())) : "--:--"));
 
-      if ((cursor = db.getAllByMonth(String.valueOf(System.currentTimeMillis() - MONTH_IN_MILLISECONDS))) != null && cursor.moveToFirst()) {
-        do {
+      if ((cursor = db.getAllByMonth(String.valueOf(System.currentTimeMillis() - MONTH_IN_MILLISECONDS))) != null && cursor.moveToFirst())
+      {
+        do
+        {
           avgMonth += cursor.getInt(DB_KEYS.KEY_SOLVE_TIME.ordinal());
         } while (cursor.moveToNext());
 
         avgMonth = avgMonth / cursor.getCount();
         monthTxt.setText("Avg Month: " + (cursor.getCount() > 0 ? formatString(avgMonth) : "--:--"));
       }
-    } else {
+    }
+    else
+    {
       bestTxt.setText("");
       worstTxt.setText("");
       last5Txt.setText("");
@@ -633,16 +691,21 @@ public class UIStateMachine {
     db.close();
   }
 
-  private void scrambleCubeText() {
+  private void scrambleCubeText()
+  {
     SpannableStringBuilder finalScrambleTxt = new SpannableStringBuilder("");
     String[] scrambles = Scrambler.generateScramble().split(" ");
     boolean color = false;
-    for (String txt : scrambles) {
-      if (color) {
+    for (String txt : scrambles)
+    {
+      if (color)
+      {
         SpannableString ss = new SpannableString(txt);
         ss.setSpan(new ForegroundColorSpan(Color.rgb(0, 145, 255)), 0, txt.length(), 0);
         finalScrambleTxt.append(ss).append("\u00A0\u00A0");
-      } else {
+      }
+      else
+      {
         finalScrambleTxt.append(txt).append("\u00A0\u00A0");
       }
       color = !color;
@@ -651,7 +714,8 @@ public class UIStateMachine {
     scrambleTxt.setVisibility(View.VISIBLE);
   }
 
-  private String formatString(long millis) {
+  private String formatString(long millis)
+  {
     return ((millis / (1000 * 60)) > 0 ?
         String.format("%d:%02d:%02d",
             (millis / (1000 * 60)),
@@ -663,9 +727,13 @@ public class UIStateMachine {
             ((millis / 10) % 100)));
   }
 
-  protected enum STATES {START, WAITING, HOLDING, READY, RUNNING, STOPPING}
+  protected enum STATES
+  {
+    START, WAITING, HOLDING, READY, RUNNING, STOPPING
+  }
 
-  private class State {
+  private class State
+  {
 
     public String TAG;
     public STATES state;
@@ -673,7 +741,8 @@ public class UIStateMachine {
     public int bkgGlow;
     public int btnBkg;
 
-    public State(STATES state, int nextState, int bkgGlow, int btnBkg) {
+    public State(STATES state, int nextState, int bkgGlow, int btnBkg)
+    {
       this.TAG = state.name();
       this.state = state;
       this.nextState = nextState;
@@ -681,7 +750,8 @@ public class UIStateMachine {
       this.btnBkg = btnBkg;
     }
 
-    public State(STATES state, STATES nextState, int bkgGlow, int btnBkg) {
+    public State(STATES state, STATES nextState, int bkgGlow, int btnBkg)
+    {
       this.TAG = state.name();
       this.state = state;
       this.nextState = nextState.ordinal();

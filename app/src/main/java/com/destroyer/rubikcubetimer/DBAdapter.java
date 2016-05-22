@@ -8,7 +8,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-public class DBAdapter {
+public class DBAdapter
+{
 
   static final String TAG = "DBAdapter";
   static final String KEY_ID = "id";//0
@@ -29,26 +30,32 @@ public class DBAdapter {
   final Context context;
   DatabaseHelper DBHelper;
   SQLiteDatabase db;
-  public DBAdapter(Context ctx) {
+
+  public DBAdapter(Context ctx)
+  {
     this.context = ctx;
     DBHelper = new DatabaseHelper(context);
   }
 
-  public DBAdapter open() throws SQLException {
+  public DBAdapter open() throws SQLException
+  {
     db = DBHelper.getWritableDatabase();
     return this;
   }
 
-  public void close() {
+  public void close()
+  {
     DBHelper.close();
   }
 
   // Input is a SQL statement that will be executed
-  public void performExec(String query) {
+  public void performExec(String query)
+  {
     db.execSQL(query);
   }
 
-  public boolean addTime(long date, long solveTime, long sessionId, String scramble) {
+  public boolean addTime(long date, long solveTime, long sessionId, String scramble)
+  {
     ContentValues contentValues = new ContentValues();
     contentValues.put(KEY_DATE, date);
     contentValues.put(KEY_SOLVE_TIME, solveTime);
@@ -58,35 +65,42 @@ public class DBAdapter {
     return db.insert(TABLE_NAME, null, contentValues) > 0;
   }
 
-  public Cursor getTime(int id) {
+  public Cursor getTime(int id)
+  {
     return null;
   }
 
   /////////////////  Create  /////////////////////
 
-  public Cursor getAllByMonth(String selection) {
+  public Cursor getAllByMonth(String selection)
+  {
     return db.query(true, TABLE_NAME, new String[]{KEY_ID, KEY_DATE, KEY_SOLVE_TIME, KEY_SESSION_ID, KEY_SCRAMBLE}, KEY_DATE + ">" + selection, null, null, null, null, null);
   }
 
   /////////////////  Read  /////////////////////
 
-  public Cursor getAllTimes() {
+  public Cursor getAllTimes()
+  {
     return db.query(true, TABLE_NAME, new String[]{KEY_ID, KEY_DATE, KEY_SOLVE_TIME, KEY_SESSION_ID, KEY_SCRAMBLE}, null, null, null, null, KEY_DATE + " DESC", null);
   }
 
-  public Cursor getAllTimes(String sort) {
+  public Cursor getAllTimes(String sort)
+  {
     return db.query(true, TABLE_NAME, new String[]{KEY_ID, KEY_DATE, KEY_SOLVE_TIME, KEY_SESSION_ID, KEY_SCRAMBLE}, null, null, null, null, KEY_DATE + " " + sort, null);
   }
 
-  public Cursor getAllTimesBySession(long sessionId) {
+  public Cursor getAllTimesBySession(long sessionId)
+  {
     return db.query(true, TABLE_NAME, new String[]{KEY_ID, KEY_DATE, KEY_SOLVE_TIME, KEY_SESSION_ID, KEY_SCRAMBLE}, KEY_SESSION_ID + "=" + sessionId, null, null, null, null, null);
   }
 
-  public boolean removeAllTimes() {
+  public boolean removeAllTimes()
+  {
     return (db.delete(TABLE_NAME, null, null) > 0);
   }
 
-  public DBAdapter removeAllScores() {
+  public DBAdapter removeAllScores()
+  {
     return ((db.delete(TABLE_NAME, null, null) > 0) ? this : null);
   }
 
@@ -95,29 +109,39 @@ public class DBAdapter {
 
   /////////////////  Delete  /////////////////////
 
-  public boolean removeTime(int id) {
+  public boolean removeTime(int id)
+  {
     return db.delete(TABLE_NAME, KEY_ID + "=" + id, null) > 0;
   }
 
-  protected enum DB_KEYS {KEY_ID, KEY_DATE, KEY_SOLVE_TIME, KEY_SESSION_ID, KEY_SCRAMBLE}
+  protected enum DB_KEYS
+  {
+    KEY_ID, KEY_DATE, KEY_SOLVE_TIME, KEY_SESSION_ID, KEY_SCRAMBLE
+  }
 
-  private static class DatabaseHelper extends SQLiteOpenHelper {
+  private static class DatabaseHelper extends SQLiteOpenHelper
+  {
 
-    DatabaseHelper(Context context) {
+    DatabaseHelper(Context context)
+    {
       super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
-    public void onCreate(SQLiteDatabase db) {
-      try {
+    public void onCreate(SQLiteDatabase db)
+    {
+      try
+      {
         db.execSQL(TABLE_RUBIK_CREATE);
-      } catch (SQLException e) {
+      } catch (SQLException e)
+      {
         e.printStackTrace();
       }
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
+    {
       Log.w(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy old data");
       db.execSQL("DROP TABLE IF EXISTS rubik_times");
       onCreate(db);

@@ -10,13 +10,15 @@ import android.widget.TextView;
 
 import java.text.DateFormat;
 
-public class TimeListAdapter extends ArrayAdapter<TimeItem> {
+public class TimeListAdapter extends ArrayAdapter<TimeItem>
+{
 
   Context context;
   int layoutResourceId;
   TimeItem[] timeItems;
 
-  public TimeListAdapter(Context context, int layoutResourceId, TimeItem[] timeItems) {
+  public TimeListAdapter(Context context, int layoutResourceId, TimeItem[] timeItems)
+  {
     super(context, layoutResourceId, timeItems);
     this.context = context;
     this.layoutResourceId = layoutResourceId;
@@ -24,9 +26,11 @@ public class TimeListAdapter extends ArrayAdapter<TimeItem> {
   }
 
   @Override
-  public View getView(int position, View convertView, ViewGroup parent) {
+  public View getView(int position, View convertView, ViewGroup parent)
+  {
 
-    if (convertView == null) {
+    if (convertView == null)
+    {
       LayoutInflater inflater = ((Activity) context).getLayoutInflater();
       convertView = inflater.inflate(layoutResourceId, parent, false);
     }
@@ -38,11 +42,13 @@ public class TimeListAdapter extends ArrayAdapter<TimeItem> {
     return convertView;
   }
 
-  private String formatDate(long date) {
+  private String formatDate(long date)
+  {
     return DateFormat.getDateTimeInstance().format(date);
   }
 
-  private String formatTime(long millis) {
+  private String formatTime(long millis)
+  {
     return ((millis / (1000 * 60)) > 0 ?
         String.format("%d:%02d:%02d",
             (millis / (1000 * 60)),

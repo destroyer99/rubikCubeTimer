@@ -276,4 +276,15 @@
         android:layout_marginLeft="35dp"
         android:layout_marginRight="35dp" />
 
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/settingsBtn"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:src="@android:drawable/ic_menu_more"
+        android:background="#00ffffff"
+        android:layout_marginLeft="15dp"
+        android:layout_marginBottom="15dp" />
+
 </RelativeLayout>

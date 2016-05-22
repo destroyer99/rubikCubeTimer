@@ -17,7 +17,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class GyroCalibrationActivity extends Activity {
+public class GyroCalibrationActivity extends Activity
+{
 
   private static final float[] gyroBuffer = {2f, 2f, 1.5f};
   private static final float[] gyroThreshold = {0.1f, 0.1f, 0.1f};
@@ -32,12 +33,16 @@ public class GyroCalibrationActivity extends Activity {
   private TextView txtView;
   private Button btnStartSave;
   private SensorManager mSensorManager;
-  private final SensorEventListener mSensorListener = new SensorEventListener() {
-    public void onSensorChanged(SensorEvent event) {
-      if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE && gyroSettleTimeout) {
+  private final SensorEventListener mSensorListener = new SensorEventListener()
+  {
+    public void onSensorChanged(SensorEvent event)
+    {
+      if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE && gyroSettleTimeout)
+      {
         if (Math.abs(event.values[0]) - gyroLast[0] > gyroThreshold[0] ||
             Math.abs(event.values[1]) - gyroLast[1] > gyroThreshold[1] ||
-            Math.abs(event.values[2]) - gyroLast[2] > gyroThreshold[2]) {
+            Math.abs(event.values[2]) - gyroLast[2] > gyroThreshold[2])
+        {
           Log.wtf("GYRO_CALIBRATE", "Device not still enough to calibrate");
           val = 10;
           txtView.setText("KEEP DEVICE STILL!!\nLeave still for " + String.valueOf(val) + " seconds");
@@ -49,7 +54,9 @@ public class GyroCalibrationActivity extends Activity {
           cdt.cancel();
           mSensorManager.unregisterListener(mSensorListener);
           gyroSettleTimeout = false;
-        } else {
+        }
+        else
+        {
           gyroVal[0] += gyroLast[0] = Math.abs(event.values[0]);
           gyroVal[1] += gyroLast[1] = Math.abs(event.values[1]);
           gyroVal[2] += gyroLast[2] = Math.abs(event.values[2]);
@@ -58,12 +65,14 @@ public class GyroCalibrationActivity extends Activity {
       }
     }
 
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    public void onAccuracyChanged(Sensor sensor, int accuracy)
+    {
 
     }
   };
 
-  protected void onCreate(Bundle savedInstanceState) {
+  protected void onCreate(Bundle savedInstanceState)
+  {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_gyro_calibration);
 
@@ -77,30 +86,39 @@ public class GyroCalibrationActivity extends Activity {
 
     txtView.setText("Leave still for " + String.valueOf(val) + " seconds");
 
-    btnCancel.setOnClickListener(new View.OnClickListener() {
+    btnCancel.setOnClickListener(new View.OnClickListener()
+    {
       @Override
-      public void onClick(View v) {
+      public void onClick(View v)
+      {
         mSensorManager.unregisterListener(mSensorListener);
         cdt.cancel();
         finish();
       }
     });
 
-    btnStartSave.setOnClickListener(new View.OnClickListener() {
+    btnStartSave.setOnClickListener(new View.OnClickListener()
+    {
       @Override
-      public void onClick(View v) {
-        if (((Button) v).getText().equals("Start")) {
+      public void onClick(View v)
+      {
+        if (((Button) v).getText().equals("Start"))
+        {
           mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_FASTEST);
-          new Handler().postDelayed(new Runnable() {
+          new Handler().postDelayed(new Runnable()
+          {
             @Override
-            public void run() {
+            public void run()
+            {
               gyroSettleTimeout = true;
             }
           }, 250);
           btnStartSave.setText("Save");
           btnStartSave.setEnabled(false);
           cdt.start();
-        } else {
+        }
+        else
+        {
           prefEditor.putString("gyroThreshold", gyroBuffer[0] * gyroVal[0] / sensorCount + ";" + gyroBuffer[1] * gyroVal[1] / sensorCount + ";" + gyroBuffer[2] * gyroVal[2] / sensorCount);
           prefEditor.commit();
           finish();
@@ -108,16 +126,20 @@ public class GyroCalibrationActivity extends Activity {
       }
     });
 
-    cdt = new CountDownTimer(val * 1000, 100) {
+    cdt = new CountDownTimer(val * 1000, 100)
+    {
       @Override
-      public void onTick(long millisUntilFinished) {
-        if (millisUntilFinished < val * 1000) {
+      public void onTick(long millisUntilFinished)
+      {
+        if (millisUntilFinished < val * 1000)
+        {
           txtView.setText("Leave still for " + String.valueOf(val--) + " seconds");
         }
       }
 
       @Override
-      public void onFinish() {
+      public void onFinish()
+      {
         mSensorManager.unregisterListener(mSensorListener);
         txtView.setText("Complete!");
         btnStartSave.setEnabled(true);
@@ -131,21 +153,24 @@ public class GyroCalibrationActivity extends Activity {
   }
 
   @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
+  public boolean onCreateOptionsMenu(Menu menu)
+  {
     // Inflate the menu; this adds items to the action bar if it is present.
     getMenuInflater().inflate(R.menu.menu_gyro_calibration, menu);
     return true;
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
+  public boolean onOptionsItemSelected(MenuItem item)
+  {
     // Handle action bar item clicks here. The action bar will
     // automatically handle clicks on the Home/Up button, so long
     // as you specify a parent activity in AndroidManifest.xml.
     int id = item.getItemId();
 
     //noinspection SimplifiableIfStatement
-    if (id == R.id.action_settings) {
+    if (id == R.id.action_settings)
+    {
       return true;
     }
 

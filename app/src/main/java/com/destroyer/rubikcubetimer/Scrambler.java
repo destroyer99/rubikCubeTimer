@@ -10,7 +10,8 @@ package com.destroyer.rubikcubetimer;
 
 import java.util.Random;
 
-public class Scrambler {
+public class Scrambler
+{
 
   /**
    * The faces of a Rubik's Cube represented as side/axis
@@ -29,15 +30,18 @@ public class Scrambler {
 
   /**
    * Generates a random 25 move scramble
+   *
    * @return
    */
-  public static String generateScramble() {
+  public static String generateScramble()
+  {
     String scramble = "";
 
     Face penultimate = new Face();
     Face last = new Face();
 
-    for (int i = 0; i < 25; i++) {
+    for (int i = 0; i < 25; i++)
+    {
       Face current = randomFace(penultimate, last);
       scramble += current.getSide() + randomDirection() + " ";
       penultimate = last;
@@ -49,11 +53,13 @@ public class Scrambler {
 
   /**
    * Finds a random Face that's not the same as the last or on the same axis as the last three
+   *
    * @param penultimate
    * @param last
    * @return
    */
-  public static Face randomFace(Face penultimate, Face last) {
+  public static Face randomFace(Face penultimate, Face last)
+  {
     Face toReturn = faces[random.nextInt(faces.length)];
     if (last.sameFace(toReturn) || sameAxis(penultimate, last, toReturn))
       return randomFace(penultimate, last);
@@ -62,17 +68,21 @@ public class Scrambler {
 
   /**
    * Compares three face's axes
+   *
    * @return true if all the Faces have the same axis
    */
-  public static boolean sameAxis(Face a, Face b, Face c) {
+  public static boolean sameAxis(Face a, Face b, Face c)
+  {
     return a.getAxis() == b.getAxis() && b.getAxis() == c.getAxis();
   }
 
   /**
    * Returns a random direction for a face rotation
+   *
    * @return
    */
-  public static String randomDirection() {
+  public static String randomDirection()
+  {
     return rotation[random.nextInt(rotation.length)];
   }
 }
